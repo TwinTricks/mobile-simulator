@@ -1,8 +1,13 @@
 import { browserAPI } from './lib/browser.js';
+import { applyIcons, applyIconOverrides } from './lib/icons.js';
+
+applyIcons();
+applyIconOverrides();
 
 const urlInput = document.getElementById('url');
 const openBtn = document.getElementById('open-btn');
 const currentBtn = document.getElementById('current-btn');
+const currentBtnLabel = currentBtn.querySelector('.btn-label');
 
 function normalizeUrl(input) {
   let v = input.trim();
@@ -33,8 +38,8 @@ currentBtn.addEventListener('click', async () => {
     await browserAPI.runtime.sendMessage({ type: 'open-simulator', url: res.url });
     window.close();
   } else {
-    currentBtn.textContent = 'Current tab not supported';
-    setTimeout(() => (currentBtn.textContent = 'Simulate current tab'), 1500);
+    currentBtnLabel.textContent = 'Current tab not supported';
+    setTimeout(() => (currentBtnLabel.textContent = 'Simulate current tab'), 1500);
   }
 });
 

@@ -15,8 +15,14 @@
       <input id="url" type="url" placeholder="https://example.com" autocomplete="off">
     </label>
 
-    <button id="open-btn" class="btn-primary">Open simulator →</button>
-    <button id="current-btn" class="btn-secondary">Simulate current tab</button>
+    <button id="open-btn" class="btn-primary">
+      <span class="btn-label">Open simulator</span>
+      <span class="btn-icon" data-icon="arrow-right"></span>
+    </button>
+    <button id="current-btn" class="btn-secondary">
+      <span class="btn-icon" data-icon="eye"></span>
+      <span class="btn-label">Simulate current tab</span>
+    </button>
 
     <p class="hint">Opens a full tab with side-by-side device frames.</p>
   </div>

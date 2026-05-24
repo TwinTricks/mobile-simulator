@@ -63,22 +63,31 @@
     </div>
 
     <div class="panel-tabs">
-      <button class="tab-btn active" data-tab="devices">Devices</button>
-      <button class="tab-btn" data-tab="custom">Custom</button>
-      <button class="tab-btn" data-tab="presets">Presets</button>
+      <button class="tab-btn active" data-tab="devices">
+        <span class="tab-icon" data-icon="devices"></span>
+        <span>Devices</span>
+      </button>
+      <button class="tab-btn" data-tab="custom">
+        <span class="tab-icon" data-icon="plus"></span>
+        <span>Custom</span>
+      </button>
+      <button class="tab-btn" data-tab="presets">
+        <span class="tab-icon" data-icon="bookmark"></span>
+        <span>Presets</span>
+      </button>
     </div>
 
     <div id="tab-devices" class="panel-body">
       <div class="category-section">
-        <h3>Phones</h3>
+        <h3><span class="category-icon" data-icon="phone"></span>Phones</h3>
         <div id="preset-phones" class="device-checklist"></div>
       </div>
       <div class="category-section">
-        <h3>Tablets</h3>
+        <h3><span class="category-icon" data-icon="tablet"></span>Tablets</h3>
         <div id="preset-tablets" class="device-checklist"></div>
       </div>
       <div class="category-section">
-        <h3>Desktop</h3>
+        <h3><span class="category-icon" data-icon="monitor"></span>Desktop</h3>
         <div id="preset-desktops" class="device-checklist"></div>
       </div>
     </div>
@@ -92,7 +101,10 @@
           <input id="cd-height" type="number" placeholder="Height" min="100" max="3840">
           <input id="cd-dpr" type="number" placeholder="DPR" min="1" max="5" step="0.5" value="2">
         </div>
-        <button id="cd-add" class="btn-primary">Add device</button>
+        <button id="cd-add" class="btn-primary btn-with-icon">
+          <span class="btn-icon" data-icon="plus"></span>
+          <span>Add device</span>
+        </button>
       </div>
       <div id="custom-list" class="device-checklist"></div>
     </div>
@@ -100,8 +112,14 @@
     <div id="tab-presets" class="panel-body hidden">
       <div class="custom-add">
         <h3>Save current selection</h3>
-        <button id="preset-save" class="btn-primary">Save current as preset…</button>
-        <button id="preset-restore-defaults" class="btn-secondary" style="width:100%; margin-top:6px;">Restore default presets</button>
+        <button id="preset-save" class="btn-primary btn-with-icon">
+          <span class="btn-icon" data-icon="save"></span>
+          <span>Save current as preset…</span>
+        </button>
+        <button id="preset-restore-defaults" class="btn-secondary btn-with-icon" style="width:100%; margin-top:6px;">
+          <span class="btn-icon" data-icon="restart"></span>
+          <span>Restore default presets</span>
+        </button>
       </div>
       <div id="preset-list" class="preset-list"></div>
     </div>
@@ -117,6 +135,7 @@
       <div class="setting-row">
         <label>
           <input type="checkbox" id="setting-spoof-ua">
+          <span class="setting-icon" data-icon="globe"></span>
           <span>Spoof User-Agent per device</span>
         </label>
         <p class="setting-hint">Appends <code>?__sim_device=&lt;id&gt;</code> to iframe URLs to apply UA rules.</p>
@@ -124,12 +143,14 @@
       <div class="setting-row">
         <label>
           <input type="checkbox" id="setting-bezel">
+          <span class="setting-icon" data-icon="bezel"></span>
           <span>Show device bezels</span>
         </label>
       </div>
       <div class="setting-row">
         <label>
           <input type="checkbox" id="setting-compact">
+          <span class="setting-icon" data-icon="compact"></span>
           <span>Compact view (60% size)</span>
         </label>
       </div>

@@ -82,6 +82,21 @@ button {
   border: 1px solid transparent;
   font-family: inherit;
   margin-bottom: 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+button .btn-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+button .btn-icon .icon-svg {
+  width: 16px;
+  height: 16px;
+  display: block;
 }
 
 .btn-primary {

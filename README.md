@@ -47,6 +47,35 @@ See how websites look on iPhone, Pixel, iPad, Galaxy, and desktop **side-by-side
 
 Open `icons/make-icons.html` in your browser, click **Download all three**, save the PNGs into the `icons/` folder.
 
+## Icons (UI)
+
+The simulator's UI icons are hand-coded in **Iconsax Linear** style (24×24
+viewBox, 1.5px stroke, `currentColor`, rounded caps/joins). The path data is
+based on [Lucide](https://lucide.dev) (MIT-licensed), which is visually
+near-identical to Iconsax Linear.
+
+### Overriding an icon
+
+You can swap any built-in icon for your own SVG (for example, real Iconsax
+files) by dropping a file into `icons/ui/<name>.svg`.
+
+- Use a **complete `<svg>` element** with `viewBox="0 0 24 24"`.
+- Use `currentColor` for stroke/fill so the icon picks up the surrounding
+  theme color automatically.
+- The file is loaded via `chrome.runtime.getURL`; it is declared in
+  `web_accessible_resources` in `manifest.json` so the simulator page can
+  fetch it.
+- If a file is present, it replaces the built-in. If absent, the built-in
+  is used. Cached per session — reload the simulator tab after dropping
+  in new files.
+
+### Supported icon names
+
+`logo`, `back`, `forward`, `refresh`, `devices`, `phone`, `tablet`,
+`monitor`, `bezel`, `compact`, `zoom`, `sync`, `sun`, `moon`, `settings`,
+`rotate`, `external`, `close`, `drag`, `stop`, `plus`, `save`, `bookmark`,
+`eye`, `globe`, `arrow-right`, `restart`, `trash`.
+
 ## File map
 
 ```
@@ -60,10 +89,12 @@ mobile-simulator/
 ├── lib/
 │   ├── browser.js             Chrome/Firefox shim
 │   ├── devices.js             Preset device definitions + UA strings + default presets
+│   ├── icons.js               Built-in SVG icons + user-override loader
 │   └── storage.js             State, settings, session-dismissed warnings
 └── icons/
     ├── make-icons.html
-    └── icon{16,48,128}.png
+    ├── icon{16,48,128}.png
+    └── ui/                    Drop custom <name>.svg here to override built-in UI icons
 ```
 
 ## Permissions explained

@@ -4,7 +4,7 @@ import {
   getState, saveState, getSettings, saveSettings, newId,
   getDismissedWarnings, dismissWarning,
 } from './lib/storage.js';
-import { applyIcons } from './lib/icons.js';
+import { applyIcons, applyIconOverrides } from './lib/icons.js';
 
 const $ = (id) => document.getElementById(id);
 const els = {
@@ -288,6 +288,7 @@ function renderGrid() {
   }
 
   applyIcons(els.grid);
+  applyIconOverrides(els.grid);
   attachScrollSync();
   updateStatusBar(visible);
   // Refresh UA dynamic rules to match current visible devices
@@ -452,7 +453,9 @@ function makeDeviceRow(d, { allowRemove = false } = {}) {
     btn.className = 'remove-custom';
     btn.dataset.remove = d.id;
     btn.title = 'Delete custom device';
-    btn.textContent = '✕';
+    const iconSpan = document.createElement('span');
+    iconSpan.setAttribute('data-icon', 'close');
+    btn.appendChild(iconSpan);
     label.appendChild(btn);
   }
   return label;
@@ -474,6 +477,8 @@ function renderDevicePanel() {
   for (const d of state.customDevices) {
     els.customList.appendChild(makeDeviceRow(d, { allowRemove: true }));
   }
+  applyIcons(els.devicesPanel);
+  applyIconOverrides(els.devicesPanel);
 }
 
 function renderPresets() {
@@ -488,10 +493,12 @@ function renderPresets() {
     row.innerHTML = `
       <span class="preset-name" data-load="${p.id}">${escapeHtml(p.name)}</span>
       <span class="preset-meta">${p.deviceIds.length} devices</span>
-      <button class="preset-delete" data-del="${p.id}" title="Delete preset">✕</button>
+      <button class="preset-delete" data-del="${p.id}" title="Delete preset"><span data-icon="close"></span></button>
     `;
     els.presetList.appendChild(row);
   }
+  applyIcons(els.presetList);
+  applyIconOverrides(els.presetList);
 }
 
 function escapeHtml(s) {
@@ -922,6 +929,10 @@ async function init() {
   renderDevicePanel();
   renderPresets();
   renderGrid();
+
+  // After all sync icon hydration, see if any user-supplied SVGs in
+  // icons/ui/ should override the built-ins.
+  applyIconOverrides();
 }
 
 init();

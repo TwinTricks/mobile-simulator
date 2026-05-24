@@ -151,6 +151,47 @@ body {
 .drag-handle .icon-svg { width: 14px; height: 14px; color: var(--text-muted); }
 .device-actions .icon-btn .icon-svg { width: 14px; height: 14px; }
 .status-right .icon-btn .icon-svg { width: 12px; height: 12px; }
+
+/* Tab buttons (Devices / Custom / Presets) */
+.tab-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+.tab-btn .tab-icon { display: inline-flex; }
+.tab-btn .tab-icon .icon-svg { width: 14px; height: 14px; }
+
+/* Category section headers with category icon */
+.category-section h3 {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.category-icon { display: inline-flex; color: var(--text-muted); }
+.category-icon .icon-svg { width: 12px; height: 12px; }
+
+/* Inline icons inside primary/secondary buttons (e.g. Add device) */
+.btn-with-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+.btn-with-icon .btn-icon { display: inline-flex; }
+.btn-with-icon .btn-icon .icon-svg { width: 14px; height: 14px; }
+
+/* Custom device delete icon */
+.device-checklist .remove-custom { display: inline-flex; align-items: center; justify-content: center; }
+.device-checklist .remove-custom .icon-svg { width: 12px; height: 12px; }
+
+/* Preset delete icon */
+.preset-list .preset-delete { display: inline-flex; align-items: center; justify-content: center; }
+.preset-list .preset-delete .icon-svg { width: 12px; height: 12px; }
+
+/* Settings checkbox label icons */
+.setting-icon { display: inline-flex; color: var(--text-muted); }
+.setting-icon .icon-svg { width: 14px; height: 14px; }
 .spinner { /* unchanged below */ }
 
 .icon-btn:hover {
