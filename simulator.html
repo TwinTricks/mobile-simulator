@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mobile Simulator</title>
+  <link rel="stylesheet" href="simulator.css">
+</head>
+<body class="theme-system">
+  <header class="toolbar">
+    <div class="toolbar-left">
+      <span class="brand">◧ Simulator</span>
+    </div>
+
+    <div class="toolbar-center">
+      <button id="back-btn" class="icon-btn" title="Back">‹</button>
+      <button id="forward-btn" class="icon-btn" title="Forward">›</button>
+      <button id="reload-btn" class="icon-btn" title="Reload all (Ctrl+R)">↻</button>
+      <input id="url-input" type="text" placeholder="Enter URL (Ctrl+L to focus)" spellcheck="false" autocomplete="off">
+      <button id="go-btn" class="btn-primary">Go</button>
+    </div>
+
+    <div class="toolbar-right">
+      <button id="devices-btn" class="icon-btn" title="Manage devices">📱</button>
+      <button id="bezel-btn" class="icon-btn" title="Bezel mode" data-active="true">▢</button>
+      <button id="compact-btn" class="icon-btn" title="Compact view">⊟</button>
+      <button id="zoom-btn" class="icon-btn" title="Zoom">⊞</button>
+      <button id="sync-btn" class="icon-btn" title="Sync scroll" data-active="true">↕</button>
+      <button id="scheme-btn" class="icon-btn" title="Force color scheme">☀</button>
+      <button id="settings-btn" class="icon-btn" title="Settings">⚙</button>
+      <button id="theme-btn" class="icon-btn" title="Theme">◐</button>
+    </div>
+  </header>
+
+  <div id="warning" class="warning hidden">
+    <span id="warning-text"></span>
+    <button id="warning-close" class="icon-btn">✕</button>
+  </div>
+
+  <main id="device-grid" class="device-grid"></main>
+
+  <section id="empty-state" class="empty-state hidden">
+    <div class="empty-icon">📱</div>
+    <h2>No devices selected</h2>
+    <p>Click the <strong>📱</strong> icon above to add devices to your view.</p>
+  </section>
+
+  <!-- Status bar -->
+  <footer id="status-bar" class="status-bar">
+    <div class="status-left"><span id="status-count">0 devices</span></div>
+    <div class="status-center"><span id="status-url" title="Click to copy">—</span></div>
+    <div class="status-right">
+      <span id="status-rules" class="status-pill">Header rules: ON</span>
+      <button id="status-close" class="icon-btn" title="Hide status bar">✕</button>
+    </div>
+  </footer>
+
+  <!-- Devices panel -->
+  <aside id="devices-panel" class="side-panel hidden" aria-hidden="true">
+    <div class="panel-header">
+      <h2>Devices</h2>
+      <button id="devices-close" class="icon-btn">✕</button>
+    </div>
+
+    <div class="panel-tabs">
+      <button class="tab-btn active" data-tab="devices">Devices</button>
+      <button class="tab-btn" data-tab="custom">Custom</button>
+      <button class="tab-btn" data-tab="presets">Presets</button>
+    </div>
+
+    <div id="tab-devices" class="panel-body">
+      <div class="category-section">
+        <h3>Phones</h3>
+        <div id="preset-phones" class="device-checklist"></div>
+      </div>
+      <div class="category-section">
+        <h3>Tablets</h3>
+        <div id="preset-tablets" class="device-checklist"></div>
+      </div>
+      <div class="category-section">
+        <h3>Desktop</h3>
+        <div id="preset-desktops" class="device-checklist"></div>
+      </div>
+    </div>
+
+    <div id="tab-custom" class="panel-body hidden">
+      <div class="custom-add">
+        <h3>Add custom device</h3>
+        <input id="cd-name" type="text" placeholder="Device name" maxlength="40">
+        <div class="row">
+          <input id="cd-width" type="number" placeholder="Width" min="100" max="3840">
+          <input id="cd-height" type="number" placeholder="Height" min="100" max="3840">
+          <input id="cd-dpr" type="number" placeholder="DPR" min="1" max="5" step="0.5" value="2">
+        </div>
+        <button id="cd-add" class="btn-primary">Add device</button>
+      </div>
+      <div id="custom-list" class="device-checklist"></div>
+    </div>
+
+    <div id="tab-presets" class="panel-body hidden">
+      <div class="custom-add">
+        <h3>Save current selection</h3>
+        <button id="preset-save" class="btn-primary">Save current as preset…</button>
+      </div>
+      <div id="preset-list" class="preset-list"></div>
+    </div>
+  </aside>
+
+  <!-- Settings panel -->
+  <aside id="settings-panel" class="side-panel hidden" aria-hidden="true">
+    <div class="panel-header">
+      <h2>Settings</h2>
+      <button id="settings-close" class="icon-btn">✕</button>
+    </div>
+    <div class="panel-body">
+      <div class="setting-row">
+        <label>
+          <input type="checkbox" id="setting-spoof-ua">
+          <span>Spoof User-Agent per device</span>
+        </label>
+        <p class="setting-hint">Appends <code>?__sim_device=&lt;id&gt;</code> to iframe URLs to apply UA rules.</p>
+      </div>
+      <div class="setting-row">
+        <label>
+          <input type="checkbox" id="setting-bezel">
+          <span>Show device bezels</span>
+        </label>
+      </div>
+      <div class="setting-row">
+        <label>
+          <input type="checkbox" id="setting-compact">
+          <span>Compact view (60% size)</span>
+        </label>
+      </div>
+      <div class="setting-row">
+        <label for="setting-scheme">Force color scheme</label>
+        <select id="setting-scheme">
+          <option value="auto">Auto</option>
+          <option value="light">Light</option>
+          <option value="dark">Dark</option>
+        </select>
+        <p class="setting-hint">Same-origin iframes only. Cross-origin pages can't be modified.</p>
+      </div>
+      <div class="setting-row">
+        <label for="setting-csp">Response header handling</label>
+        <select id="setting-csp">
+          <option value="strip">Strip CSP + XFO (default)</option>
+          <option value="xfo-only">Strip XFO only (keep CSP)</option>
+          <option value="off">Off (no header changes)</option>
+        </select>
+        <p class="setting-hint">Some sites break when CSP is removed. Try "XFO only" if assets fail to load.</p>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Zoom panel -->
+  <div id="zoom-menu" class="dropdown-menu hidden">
+    <button data-zoom="0.5">50%</button>
+    <button data-zoom="0.75">75%</button>
+    <button data-zoom="1" class="active">100%</button>
+    <button data-zoom="1.25">125%</button>
+  </div>
+
+  <template id="device-frame-tpl">
+    <div class="device-frame" data-device-id="">
+      <div class="device-header" draggable="true">
+        <span class="drag-handle" title="Drag to reorder">⋮⋮</span>
+        <span class="device-name"></span>
+        <span class="device-meta"></span>
+        <div class="device-actions">
+          <button class="icon-btn" data-action="rotate" title="Rotate">⟳</button>
+          <button class="icon-btn" data-action="refresh" title="Refresh">↻</button>
+          <button class="icon-btn" data-action="open" title="Open in real tab">↗</button>
+          <button class="icon-btn" data-action="remove" title="Remove">✕</button>
+        </div>
+      </div>
+      <div class="device-bezel">
+        <div class="bezel-notch"></div>
+        <div class="device-viewport">
+          <iframe class="device-iframe" referrerpolicy="no-referrer-when-downgrade" allow="clipboard-read; clipboard-write" sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-popups-to-escape-sandbox allow-presentation allow-downloads"></iframe>
+          <div class="device-loading hidden">
+            <div class="spinner"></div>
+            <span class="loading-text">Loading…</span>
+            <button class="loading-stop hidden" data-action="stop-load">Stop</button>
+          </div>
+        </div>
+        <div class="bezel-home"></div>
+      </div>
+    </div>
+  </template>
+
+  <script type="module" src="simulator.js"></script>
+</body>
+</html>

@@ -1,0 +1,16 @@
+# Icon generator (one-time tool, not needed at runtime)
+icons/make-icons.html
+
+# Local-only Chrome Web Store submission notes
+STORE-LISTING.md
+screenshots/
+
+# Packaged builds
+*.zip
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.log

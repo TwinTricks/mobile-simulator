@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Mobile Simulator</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="container">
+    <h1>Mobile Simulator</h1>
+    <p class="muted">Test how websites look on phones, tablets, and desktops.</p>
+
+    <label class="field">
+      <span>URL to simulate</span>
+      <input id="url" type="url" placeholder="https://example.com" autocomplete="off">
+    </label>
+
+    <button id="open-btn" class="btn-primary">Open simulator →</button>
+    <button id="current-btn" class="btn-secondary">Simulate current tab</button>
+
+    <p class="hint">Opens a full tab with side-by-side device frames.</p>
+  </div>
+  <script type="module" src="popup.js"></script>
+</body>
+</html>
