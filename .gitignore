@@ -5,6 +5,9 @@ icons/make-icons.html
 STORE-LISTING.md
 screenshots/
 
+# Chrome-generated declarativeNetRequest cache (machine-specific, regenerated on load)
+_metadata/
+
 # Packaged builds
 *.zip
 
