@@ -1,9 +1,10 @@
 import { browserAPI } from './lib/browser.js';
-import { PRESET_DEVICES, findDevice } from './lib/devices.js';
+import { PRESET_DEVICES, findDevice, defaultPresets } from './lib/devices.js';
 import {
   getState, saveState, getSettings, saveSettings, newId,
   getDismissedWarnings, dismissWarning,
 } from './lib/storage.js';
+import { applyIcons } from './lib/icons.js';
 
 const $ = (id) => document.getElementById(id);
 const els = {
@@ -42,6 +43,7 @@ const els = {
   cdAdd: $('cd-add'),
   presetList: $('preset-list'),
   presetSave: $('preset-save'),
+  presetRestoreDefaults: $('preset-restore-defaults'),
   statusBar: $('status-bar'),
   statusCount: $('status-count'),
   statusUrl: $('status-url'),
@@ -285,40 +287,105 @@ function renderGrid() {
     visible.forEach((d, i) => els.grid.appendChild(renderFrame(d, i)));
   }
 
+  applyIcons(els.grid);
   attachScrollSync();
   updateStatusBar(visible);
   // Refresh UA dynamic rules to match current visible devices
   refreshDynamicRules(visible);
 }
 
-function attachScrollSync() {
-  if (!state.settings?.syncScroll) return;
-  document.querySelectorAll('.device-iframe').forEach((iframe) => {
-    iframe.addEventListener('load', () => {
-      try {
-        const cw = iframe.contentWindow;
-        if (!cw) return;
-        cw.addEventListener('scroll', () => {
-          if (state.syncingScroll) return;
-          state.syncingScroll = true;
-          const ratio = cw.scrollY / Math.max(1, cw.document.documentElement.scrollHeight - cw.innerHeight);
-          document.querySelectorAll('.device-iframe').forEach((other) => {
-            if (other === iframe) return;
-            try {
-              const ow = other.contentWindow;
-              if (!ow) return;
-              const target = ratio * Math.max(0, ow.document.documentElement.scrollHeight - ow.innerHeight);
-              ow.scrollTo({ top: target, behavior: 'instant' });
-            } catch {}
-          });
-          requestAnimationFrame(() => { state.syncingScroll = false; });
-        }, { passive: true });
-      } catch {
-        // cross-origin: cannot sync
-      }
-    }, { once: true });
+// Cross-origin scroll sync uses chrome.scripting to inject a tiny bridge
+// into each iframe. The bridge posts scroll events to the parent (this page)
+// via window.postMessage, which we then broadcast to other iframes.
+
+function scrollBridgeContentScript() {
+  // Runs inside each iframe's content window.
+  if (window === window.top) return;          // skip the simulator page itself
+  if (window.__simScrollBridge) return;        // idempotency guard
+  window.__simScrollBridge = true;
+
+  let suppressOnce = false;
+  let raf = null;
+
+  function sendScroll() {
+    const max = document.documentElement.scrollHeight - window.innerHeight;
+    const ratio = max > 0 ? window.scrollY / max : 0;
+    try {
+      window.parent.postMessage({ __simScroll: true, ratio }, '*');
+    } catch (e) { /* silent */ }
+  }
+
+  window.addEventListener('scroll', () => {
+    if (suppressOnce) { suppressOnce = false; return; }
+    if (raf) return;
+    raf = requestAnimationFrame(() => { raf = null; sendScroll(); });
+  }, { passive: true });
+
+  window.addEventListener('message', (e) => {
+    if (!e.data || e.data.__simScrollApply !== true) return;
+    const max = document.documentElement.scrollHeight - window.innerHeight;
+    const target = Math.max(0, e.data.ratio * max);
+    suppressOnce = true;
+    window.scrollTo({ top: target, behavior: 'instant' });
   });
 }
+
+async function injectScrollBridgeIntoFrames() {
+  if (!state.settings?.syncScroll) return;
+  try {
+    const tab = await browserAPI.tabs.getCurrent();
+    if (!tab?.id) return;
+
+    // Enumerate frames and skip the top frame (frameId === 0).
+    // The top frame is THIS extension page (chrome-extension://...),
+    // which chrome.scripting cannot inject into. Including it via
+    // allFrames:true would cause the whole call to fail.
+    const frames = await browserAPI.webNavigation.getAllFrames({ tabId: tab.id });
+    const targetFrameIds = (frames || [])
+      .filter((f) => f.frameId !== 0)
+      .map((f) => f.frameId);
+    if (targetFrameIds.length === 0) return;
+
+    await browserAPI.scripting.executeScript({
+      target: { tabId: tab.id, frameIds: targetFrameIds },
+      func: scrollBridgeContentScript,
+    });
+  } catch (e) {
+    console.warn('[scroll-sync] inject failed', e?.message || e);
+  }
+}
+
+function attachScrollSync() {
+  // Inject bridge after each iframe finishes loading. We deliberately
+  // do NOT use { once: true } so subsequent reloads (refresh action,
+  // navigation, src change) trigger re-injection. The injected
+  // script's own idempotency guard prevents double-binding within
+  // the same window instance.
+  document.querySelectorAll('.device-iframe').forEach((iframe) => {
+    if (iframe.dataset.scrollBridgeBound === '1') return;
+    iframe.dataset.scrollBridgeBound = '1';
+    iframe.addEventListener('load', () => {
+      // small delay so the iframe's document is fully parsed
+      setTimeout(() => injectScrollBridgeIntoFrames(), 100);
+    });
+  });
+}
+
+// Parent message handler — broadcasts scroll ratio to other iframes
+window.addEventListener('message', (event) => {
+  if (!event.data || event.data.__simScroll !== true) return;
+  if (!state.settings?.syncScroll) return;
+  const sourceWindow = event.source;
+  document.querySelectorAll('.device-iframe').forEach((iframe) => {
+    if (iframe.contentWindow === sourceWindow) return;
+    try {
+      iframe.contentWindow?.postMessage(
+        { __simScrollApply: true, ratio: event.data.ratio },
+        '*'
+      );
+    } catch (e) { /* silent */ }
+  });
+});
 
 // --- Dynamic rules for per-device UA spoofing ---
 async function refreshDynamicRules(visibleDevices) {
@@ -632,6 +699,25 @@ els.presetSave.addEventListener('click', () => {
   renderPresets();
 });
 
+// Restore default presets — merges any missing starters back in without
+// touching the user's custom presets.
+els.presetRestoreDefaults.addEventListener('click', () => {
+  const defaults = defaultPresets();
+  const existingIds = new Set(state.presets.map((p) => p.id));
+  let added = 0;
+  for (const d of defaults) {
+    if (!existingIds.has(d.id)) {
+      state.presets.push(d);
+      added++;
+    }
+  }
+  persistState();
+  renderPresets();
+  if (added === 0) {
+    showWarning('All default presets are already present.', 'presets-already-present');
+  }
+});
+
 // Zoom menu
 els.zoomBtn.addEventListener('click', (e) => {
   e.stopPropagation();
@@ -787,6 +873,7 @@ window.addEventListener('beforeunload', () => {
 
 // Init
 async function init() {
+  applyIcons(); // hydrate static icons before first paint
   state.settings = await getSettings();
   const saved = await getState();
   state.url = saved.url || '';

@@ -9,40 +9,40 @@
 <body class="theme-system">
   <header class="toolbar">
     <div class="toolbar-left">
-      <span class="brand">◧ Simulator</span>
+      <span class="brand"><span class="brand-icon" data-icon="logo"></span> Simulator</span>
     </div>
 
     <div class="toolbar-center">
-      <button id="back-btn" class="icon-btn" title="Back">‹</button>
-      <button id="forward-btn" class="icon-btn" title="Forward">›</button>
-      <button id="reload-btn" class="icon-btn" title="Reload all (Ctrl+R)">↻</button>
+      <button id="back-btn" class="icon-btn" title="Back" aria-label="Back"><span data-icon="back"></span></button>
+      <button id="forward-btn" class="icon-btn" title="Forward" aria-label="Forward"><span data-icon="forward"></span></button>
+      <button id="reload-btn" class="icon-btn" title="Reload all (Ctrl+R)" aria-label="Reload"><span data-icon="refresh"></span></button>
       <input id="url-input" type="text" placeholder="Enter URL (Ctrl+L to focus)" spellcheck="false" autocomplete="off">
       <button id="go-btn" class="btn-primary">Go</button>
     </div>
 
     <div class="toolbar-right">
-      <button id="devices-btn" class="icon-btn" title="Manage devices">📱</button>
-      <button id="bezel-btn" class="icon-btn" title="Bezel mode" data-active="true">▢</button>
-      <button id="compact-btn" class="icon-btn" title="Compact view">⊟</button>
-      <button id="zoom-btn" class="icon-btn" title="Zoom">⊞</button>
-      <button id="sync-btn" class="icon-btn" title="Sync scroll" data-active="true">↕</button>
-      <button id="scheme-btn" class="icon-btn" title="Force color scheme">☀</button>
-      <button id="settings-btn" class="icon-btn" title="Settings">⚙</button>
-      <button id="theme-btn" class="icon-btn" title="Theme">◐</button>
+      <button id="devices-btn" class="icon-btn" title="Manage devices" aria-label="Manage devices"><span data-icon="devices"></span></button>
+      <button id="bezel-btn" class="icon-btn" title="Bezel mode" data-active="true" aria-label="Toggle device bezels"><span data-icon="bezel"></span></button>
+      <button id="compact-btn" class="icon-btn" title="Compact view" aria-label="Compact view"><span data-icon="compact"></span></button>
+      <button id="zoom-btn" class="icon-btn" title="Zoom" aria-label="Zoom"><span data-icon="zoom"></span></button>
+      <button id="sync-btn" class="icon-btn" title="Sync scroll across devices" data-active="true" aria-label="Sync scroll"><span data-icon="sync"></span></button>
+      <button id="scheme-btn" class="icon-btn" title="Force color scheme" aria-label="Force color scheme"><span data-icon="sun"></span></button>
+      <button id="settings-btn" class="icon-btn" title="Settings" aria-label="Settings"><span data-icon="settings"></span></button>
+      <button id="theme-btn" class="icon-btn" title="Theme" aria-label="Theme"><span data-icon="moon"></span></button>
     </div>
   </header>
 
   <div id="warning" class="warning hidden">
     <span id="warning-text"></span>
-    <button id="warning-close" class="icon-btn">✕</button>
+    <button id="warning-close" class="icon-btn" aria-label="Dismiss warning"><span data-icon="close"></span></button>
   </div>
 
   <main id="device-grid" class="device-grid"></main>
 
   <section id="empty-state" class="empty-state hidden">
-    <div class="empty-icon">📱</div>
+    <div class="empty-icon" data-icon="devices"></div>
     <h2>No devices selected</h2>
-    <p>Click the <strong>📱</strong> icon above to add devices to your view.</p>
+    <p>Click the devices icon above to add devices to your view.</p>
   </section>
 
   <!-- Status bar -->
@@ -51,7 +51,7 @@
     <div class="status-center"><span id="status-url" title="Click to copy">—</span></div>
     <div class="status-right">
       <span id="status-rules" class="status-pill">Header rules: ON</span>
-      <button id="status-close" class="icon-btn" title="Hide status bar">✕</button>
+      <button id="status-close" class="icon-btn" title="Hide status bar" aria-label="Hide status bar"><span data-icon="close"></span></button>
     </div>
   </footer>
 
@@ -59,7 +59,7 @@
   <aside id="devices-panel" class="side-panel hidden" aria-hidden="true">
     <div class="panel-header">
       <h2>Devices</h2>
-      <button id="devices-close" class="icon-btn">✕</button>
+      <button id="devices-close" class="icon-btn" aria-label="Close devices panel"><span data-icon="close"></span></button>
     </div>
 
     <div class="panel-tabs">
@@ -101,6 +101,7 @@
       <div class="custom-add">
         <h3>Save current selection</h3>
         <button id="preset-save" class="btn-primary">Save current as preset…</button>
+        <button id="preset-restore-defaults" class="btn-secondary" style="width:100%; margin-top:6px;">Restore default presets</button>
       </div>
       <div id="preset-list" class="preset-list"></div>
     </div>
@@ -110,7 +111,7 @@
   <aside id="settings-panel" class="side-panel hidden" aria-hidden="true">
     <div class="panel-header">
       <h2>Settings</h2>
-      <button id="settings-close" class="icon-btn">✕</button>
+      <button id="settings-close" class="icon-btn" aria-label="Close settings panel"><span data-icon="close"></span></button>
     </div>
     <div class="panel-body">
       <div class="setting-row">
@@ -164,14 +165,14 @@
   <template id="device-frame-tpl">
     <div class="device-frame" data-device-id="">
       <div class="device-header" draggable="true">
-        <span class="drag-handle" title="Drag to reorder">⋮⋮</span>
+        <span class="drag-handle" data-icon="drag" title="Drag to reorder"></span>
         <span class="device-name"></span>
         <span class="device-meta"></span>
         <div class="device-actions">
-          <button class="icon-btn" data-action="rotate" title="Rotate">⟳</button>
-          <button class="icon-btn" data-action="refresh" title="Refresh">↻</button>
-          <button class="icon-btn" data-action="open" title="Open in real tab">↗</button>
-          <button class="icon-btn" data-action="remove" title="Remove">✕</button>
+          <button class="icon-btn" data-action="rotate" title="Rotate" aria-label="Rotate"><span data-icon="rotate"></span></button>
+          <button class="icon-btn" data-action="refresh" title="Refresh" aria-label="Refresh"><span data-icon="refresh"></span></button>
+          <button class="icon-btn" data-action="open" title="Open in real tab" aria-label="Open in tab"><span data-icon="external"></span></button>
+          <button class="icon-btn" data-action="remove" title="Remove" aria-label="Remove"><span data-icon="close"></span></button>
         </div>
       </div>
       <div class="device-bezel">

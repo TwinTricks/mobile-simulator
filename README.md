@@ -86,7 +86,7 @@ Required justification for Web Store review:
 2. **UA spoofing adds `?__sim_device=<id>`** to the visible URL — this is a deliberate marker so dynamic rules can match each iframe's requests. It's visible in the address bar of "Open in real tab" actions. Disable "Spoof User-Agent" in Settings to suppress it.
 3. **Touch events not synthesized** — mouse events only.
 4. **JavaScript framebusting** — a few sites actively redirect out of iframes.
-5. **Scroll sync only works same-origin** — same-origin policy blocks cross-origin scroll reads.
+5. **Scroll sync** — works across any origin via a tiny postMessage bridge injected into each iframe (requires the `scripting` permission). The bridge is only loaded into frames inside the simulator tab.
 6. **Mixed content** — HTTPS extension page loading HTTP URLs is blocked.
 7. **Force color scheme** — only works on same-origin iframes (cross-origin documents cannot be modified).
 8. **CSP append mode** — `declarativeNetRequest` cannot *append* to existing header values (only `set` / `remove` / `append-for-some-headers`). The "Strip XFO only" mode preserves the site's CSP intact; "Strip CSP + XFO" removes both. Truly modifying a CSP value would require the `webRequest` API on Firefox or a `chrome.debugger`-based approach.

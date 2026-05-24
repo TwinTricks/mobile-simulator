@@ -133,6 +133,26 @@ body {
   padding: 0;
 }
 
+/* SVG icons (Iconsax Linear style) */
+.icon-svg {
+  width: 18px;
+  height: 18px;
+  display: block;
+  flex-shrink: 0;
+}
+[data-icon] {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.icon-btn .icon-svg { width: 18px; height: 18px; }
+.brand-icon .icon-svg { width: 16px; height: 16px; vertical-align: middle; }
+.empty-icon .icon-svg { width: 56px; height: 56px; opacity: 0.5; }
+.drag-handle .icon-svg { width: 14px; height: 14px; color: var(--text-muted); }
+.device-actions .icon-btn .icon-svg { width: 14px; height: 14px; }
+.status-right .icon-btn .icon-svg { width: 12px; height: 12px; }
+.spinner { /* unchanged below */ }
+
 .icon-btn:hover {
   background: var(--surface-hover);
   color: var(--text);
@@ -155,6 +175,19 @@ body {
   font-family: inherit;
 }
 .btn-primary:hover { background: var(--accent-hover); }
+
+.btn-secondary {
+  background: transparent;
+  color: var(--text);
+  border: 1px solid var(--border);
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  font-family: inherit;
+}
+.btn-secondary:hover { background: var(--surface-hover); }
 
 /* Warning */
 .warning {
@@ -217,8 +250,9 @@ body {
 
 .drag-handle {
   color: var(--text-muted);
-  font-size: 10px;
-  letter-spacing: -2px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .device-name {
@@ -401,9 +435,11 @@ body {
 }
 
 .empty-icon {
-  font-size: 48px;
   margin-bottom: 12px;
   opacity: 0.5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .empty-state h2 {

@@ -52,6 +52,8 @@ All dynamic rules are **automatically removed** when you close the simulator tab
 | `storage` | Saves your selected devices, custom devices, presets, and settings on your device only |
 | `tabs` | Opens the simulator interface; provides "Open in real tab" per device frame |
 | `activeTab` | Reads the active tab's URL one time when you click "Simulate current tab" |
+| `scripting` | Injects a small "scroll-bridge" script into each iframe inside the simulator so they can scroll in sync. Not used on any other tabs. |
+| `webNavigation` | Enumerates the frame IDs inside the simulator tab (via `getAllFrames`) so we inject the scroll-bridge only into iframes, not the extension's own page. Read-only, scoped to the simulator tab. |
 | `declarativeNetRequest` | Strips iframe-blocking headers on URLs inside the simulator |
 | `declarativeNetRequestWithHostAccess` | Rewrites the User-Agent per device via dynamic rules |
 | `host_permissions: <all_urls>` | Required so the header rules apply to whatever URL you preview |
