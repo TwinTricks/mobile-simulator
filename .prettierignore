@@ -1,0 +1,11 @@
+node_modules
+dist
+dist-dev
+dist-crx
+bun.lock
+playwright-report
+test-results
+public
+ref
+docs
+src/shared/frames.generated.ts

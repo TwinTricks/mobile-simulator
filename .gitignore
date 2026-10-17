@@ -1,5 +1,21 @@
-# Icon generator (one-time tool, not needed at runtime)
-icons/make-icons.html
+node_modules
+dist
+dist-dev
+dist-crx
+*.local
+.DS_Store
+Thumbs.db
+.env
+.env.*
+!.env.example
+playwright-report
+test-results
+blob-report
+.vite
+coverage
+.vscode/
+.idea/
+*.log
 
 # Local-only Chrome Web Store submission notes
 STORE-LISTING.md
@@ -8,12 +24,11 @@ screenshots/
 # Chrome-generated declarativeNetRequest cache (machine-specific, regenerated on load)
 _metadata/
 
-# Packaged builds
-*.zip
+# Third-party reference repos (cloned locally, pulled independently)
+ref/
 
-# OS / editor
-.DS_Store
-Thumbs.db
-.vscode/
-.idea/
-*.log
+# Apple Design Resources bezel disk images, unpacked by `bun run frames:extract`
+download/
+
+# TypeScript incremental build cache
+*.tsbuildinfo

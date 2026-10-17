@@ -1,0 +1,28 @@
+/* Chrome sizes the popup to its document, so the width is fixed here. */
+html,
+body,
+#root {
+  width: 384px;
+  margin: 0;
+}
+
+body {
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+#root {
+  display: flex;
+  flex-direction: column;
+  isolation: isolate;
+}
+
+/* Every image here is chrome, so dragging one out of the popup is never useful. */
+#root img {
+  -webkit-user-drag: none;
+  user-select: none;
+}
+
+#root :focus:not(:focus-visible) {
+  outline: none;
+}
