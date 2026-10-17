@@ -89,9 +89,10 @@ export const settingsSchema = z.object({
   theme: themeChoiceSchema.catch("system"),
   /**
    * Where the simulator opens: a tab of its own, in place of the page it was opened from, or
-   * full screen over that page, where recording needs no share prompt.
+   * full screen over that page, where recording needs no share prompt. Stored apart from the
+   * older `openIn`, so everyone starts over the page once.
    */
-  openIn: z.enum(["new-tab", "same-tab", "over-page"]).catch("new-tab"),
+  openMode: z.enum(["new-tab", "same-tab", "over-page"]).catch("over-page"),
   syncScroll: z.boolean().catch(true),
   /** With several devices, a click in one is repeated in the others. */
   syncClicks: z.boolean().catch(true),

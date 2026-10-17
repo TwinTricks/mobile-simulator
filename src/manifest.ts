@@ -7,10 +7,10 @@ export const manifest = defineManifest(({ command }) => {
 
   return {
     manifest_version: 3,
-    name: "Mobile Simulator — Multi-Device Tester",
+    name: "Mobile Simulator - Multi-Device Tester",
     version: "1.1.0",
     description:
-      "Test how websites look on iPhone, Pixel, iPad, Galaxy and more — side by side in one window.",
+      "Test how websites look on iPhone, Pixel, iPad, Galaxy and more - side by side in one window.",
     icons: {
       "16": "icons/icon-16.png",
       "48": "icons/icon-48.png",

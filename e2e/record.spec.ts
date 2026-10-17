@@ -28,15 +28,20 @@ function fakeCamera(context: BrowserContext) {
   });
 }
 
-/** Opens the studio, with no countdown so recordings start at once. */
+/** Opens the studio and its options, with no countdown so recordings start at once. */
 async function openStudio(page: Page | FrameLocator) {
   await page.getByRole("button", { name: "Record video" }).click();
+  const bar = page.getByRole("toolbar", { name: "Recording studio" });
   const panel = page.getByRole("complementary", { name: "Recording studio" });
+  // Only the bar at first; its settings button brings the options.
+  await expect(bar).toBeVisible();
+  await expect(panel).toBeHidden();
+  await bar.getByRole("button", { name: "Studio options" }).click();
   await panel
     .getByRole("group", { name: "Countdown" })
     .getByRole("button", { name: "None" })
     .click();
-  return { panel, bar: page.getByRole("toolbar", { name: "Recording studio" }) };
+  return { panel, bar };
 }
 
 async function videoOf(page: Page | FrameLocator) {

@@ -9,6 +9,7 @@ import {
   placedFrame,
   type FrameLayout,
 } from "../frame-box";
+import { tintMask } from "../frame-tint";
 import { findGradient, isDarkHex } from "./backgrounds";
 import type { CapturedScreen } from "./capture";
 import { planShot } from "./plan";
@@ -50,7 +51,7 @@ function tintedImage(src: string, tint: FrameTint): Promise<HTMLCanvasElement> {
   const key = `${src}|${tint.from}|${tint.to}`;
   let pending = tinted.get(key);
   if (!pending) {
-    pending = loadImage(src).then((image) => {
+    pending = Promise.all([loadImage(src), tintMask(`/${src}`)]).then(([image, mask]) => {
       const canvas = document.createElement("canvas");
       canvas.width = image.naturalWidth;
       canvas.height = image.naturalHeight;
@@ -62,8 +63,10 @@ function tintedImage(src: string, tint: FrameTint): Promise<HTMLCanvasElement> {
       fill.addColorStop(1, tint.to);
       ctx.fillStyle = fill;
       ctx.fillRect(0, 0, canvas.width, canvas.height);
-      // Only the frame takes the colour, not the empty screen or the space around it.
+      // Only the frame's body takes the colour, not its glass or the space around it.
       ctx.globalCompositeOperation = "destination-in";
+      ctx.drawImage(mask ?? image, 0, 0);
+      ctx.globalCompositeOperation = "destination-over";
       ctx.drawImage(image, 0, 0);
       return canvas;
     });

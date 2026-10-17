@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
-import { Ban, ChevronDown, X } from "lucide-react";
+import { Ban, ChevronDown, Settings2, X } from "lucide-react";
 
 import {
   Select,
@@ -48,6 +48,8 @@ export function StudioBar({
   options,
   onOptions,
   message,
+  settingsOpen,
+  onSettings,
   onStart,
   onClose,
 }: {
@@ -55,6 +57,9 @@ export function StudioBar({
   onOptions: (patch: Partial<RecordingSettings>) => void;
   /** A line under the controls: why the camera is missing, or what Chrome will ask. */
   message: ReactNode;
+  /** Whether the panel with the device, backdrop and recording options is open. */
+  settingsOpen: boolean;
+  onSettings: () => void;
   onStart: () => void;
   onClose: () => void;
 }) {
@@ -165,6 +170,22 @@ export function StudioBar({
         <BarField label="Cursor">
           <CursorPicker value={options.cursor} onChange={(cursor) => onOptions({ cursor })} />
         </BarField>
+
+        <button
+          type="button"
+          aria-label="Studio options"
+          aria-pressed={settingsOpen}
+          data-tip="Device, backdrop and quality"
+          onClick={onSettings}
+          className={cn(
+            "flex size-9 items-center justify-center rounded-lg border transition-colors",
+            settingsOpen
+              ? "border-primary bg-primary/20 text-white"
+              : "border-white/10 bg-white/5 text-white/70 hover:bg-white/10 hover:text-white",
+          )}
+        >
+          <Settings2 className="size-4" />
+        </button>
 
         <button
           type="button"

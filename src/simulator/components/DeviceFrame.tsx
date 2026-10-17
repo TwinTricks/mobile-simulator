@@ -10,6 +10,7 @@ import { SLOW_LOAD_MS } from "@/shared/constants";
 import { deviceSize } from "@/shared/devices";
 import type { ColorScheme, Device, FrameTint, Overlay } from "@/shared/types";
 import { applyColorScheme, stepHistory } from "../frame-bridge";
+import { tintMaskUrl } from "../frame-tint";
 import {
   SCREEN_ROUNDING,
   browserChrome,
@@ -162,6 +163,7 @@ export function DeviceFrame({
   const screenWidth = width * zoom;
   const screenHeight = height * zoom;
   const layout = placed ? frameLayout(placed, screenWidth, screenHeight) : null;
+  const tintMask = useTintMask(tint && placed ? assetUrl(placed.image.src) : null);
 
   const isPhone = device.category === "phone";
   const isTablet = device.category === "tablet";
@@ -331,7 +333,7 @@ export function DeviceFrame({
             className="pointer-events-none absolute max-w-none drop-shadow-[0_18px_32px_rgba(0,0,0,0.18)] select-none"
             style={layout.image}
           />
-          {tint && (
+          {tint && tintMask && (
             <div
               aria-hidden
               data-frame-tint
@@ -340,9 +342,9 @@ export function DeviceFrame({
                 ...layout.image,
                 background: `linear-gradient(135deg, ${tint.from}, ${tint.to})`,
                 mixBlendMode: "color",
-                maskImage: `url("${assetUrl(placed.image.src)}")`,
+                maskImage: `url("${tintMask}")`,
                 maskSize: "100% 100%",
-                WebkitMaskImage: `url("${assetUrl(placed.image.src)}")`,
+                WebkitMaskImage: `url("${tintMask}")`,
                 WebkitMaskSize: "100% 100%",
               }}
             />
@@ -432,4 +434,21 @@ export function DeviceFrame({
       )}
     </figure>
   );
+}
+
+/** The mask that keeps a custom colour on the frame's body, once it is made. */
+function useTintMask(imageUrl: string | null): string | null {
+  const [mask, setMask] = useState<{ for: string; url: string } | null>(null);
+  useEffect(() => {
+    if (!imageUrl) return;
+    let current = true;
+    void tintMaskUrl(imageUrl).then((url) => {
+      // A frame that can't be read is coloured all over, as before.
+      if (current) setMask({ for: imageUrl, url: url ?? imageUrl });
+    });
+    return () => {
+      current = false;
+    };
+  }, [imageUrl]);
+  return imageUrl && mask?.for === imageUrl ? mask.url : null;
 }

@@ -73,19 +73,19 @@ export function SettingsPanel({
           <SelectField
             id="setting-open-in"
             label="Open simulator in"
-            value={settings.openIn}
-            onValueChange={(value) => updateSettings({ openIn: value as Settings["openIn"] })}
+            value={settings.openMode}
+            onValueChange={(value) => updateSettings({ openMode: value as Settings["openMode"] })}
             options={[
+              ["over-page", "Over the page, full screen"],
               ["new-tab", "A new tab"],
               ["same-tab", "The same tab"],
-              ["over-page", "Over the page, full screen"],
             ]}
             hint={
-              settings.openIn === "same-tab"
+              settings.openMode === "same-tab"
                 ? "The simulator takes the place of the page you opened it from. Closing it goes back to that page."
-                : settings.openIn === "over-page"
+                : settings.openMode === "over-page"
                   ? "The simulator lies over the page you opened it from, and records without Chrome asking to share the tab."
-                  : "The simulator gets a tab of its own, and the page you opened it from stays as it is."
+                  : "The simulator gets a tab of its own, and the page you opened it from stays as it is. Chrome asks before each recording."
             }
           />
           <DefaultDeviceField

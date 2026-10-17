@@ -1,49 +1,49 @@
-# Mobile Simulator — Multi-Device Tester
+# Mobile Simulator - Multi-Device Tester
 
 See how websites look on iPhone, Pixel, iPad, Galaxy, and desktop **side-by-side in one window**.
 
-## v2 — what's new (1.1.0)
+## v2 - what's new (1.1.0)
 
 - **Per-device User-Agent spoofing** via dynamic `declarativeNetRequest` rules. iOS devices get an iOS UA, Android devices get an Android UA, etc. (toggle in Settings).
-- **Device bezels** — visual phone/tablet outlines with notch + home indicator (rotates with the device). Quick toolbar toggle.
-- **Saveable presets** — save your current device selection as a named preset and load it later. Ships with 3 starter presets: "Phones only", "Tablets only", "iPhones & iPads".
-- **Drag-to-reorder** — grab a device's header row and drag to rearrange the grid.
-- **Compact view** — one-click toolbar toggle to shrink everything to 60% (independent of the zoom dropdown).
-- **Force color scheme** — set Light / Dark / Auto from the toolbar. Injects CSS into same-origin iframes.
-- **CSP handling modes** — pick "Strip CSP + XFO" (default), "Strip XFO only" (keeps site CSP intact), or "Off".
-- **Status bar** — bottom strip showing device count, current URL (click to copy), and header-rule status. Dismissible.
-- **Per-device loading spinner** — and a "Stop" button if a frame is still loading after 15 seconds.
-- **Session-persistent warning dismissal** — close a warning once, it stays closed for the session.
-- **Keyboard shortcut** — `Ctrl+Shift+M` (Cmd+Shift+M on Mac) opens the popup directly.
+- **Device bezels** - visual phone/tablet outlines with notch + home indicator (rotates with the device). Quick toolbar toggle.
+- **Saveable presets** - save your current device selection as a named preset and load it later. Ships with 3 starter presets: "Phones only", "Tablets only", "iPhones & iPads".
+- **Drag-to-reorder** - grab a device's header row and drag to rearrange the grid.
+- **Compact view** - one-click toolbar toggle to shrink everything to 60% (independent of the zoom dropdown).
+- **Force color scheme** - set Light / Dark / Auto from the toolbar. Injects CSS into same-origin iframes.
+- **CSP handling modes** - pick "Strip CSP + XFO" (default), "Strip XFO only" (keeps site CSP intact), or "Off".
+- **Status bar** - bottom strip showing device count, current URL (click to copy), and header-rule status. Dismissible.
+- **Per-device loading spinner** - and a "Stop" button if a frame is still loading after 15 seconds.
+- **Session-persistent warning dismissal** - close a warning once, it stays closed for the session.
+- **Keyboard shortcut** - `Ctrl+Shift+M` (Cmd+Shift+M on Mac) opens the popup directly.
 
 ## Features
 
 - **16 preset devices**: iPhone 15 Pro/14/SE, Pixel 8/Pro, Galaxy S24/Ultra/Z Fold, iPad Mini/Air/Pro, Galaxy Tab, Surface Duo, Laptop/Desktop
 - **Add custom devices** with any width, height, and DPR
-- **Side-by-side comparison** — load any URL and see it on all devices at once
-- **Per-device controls** — rotate, refresh, open in new tab, remove
+- **Side-by-side comparison** - load any URL and see it on all devices at once
+- **Per-device controls** - rotate, refresh, open in new tab, remove
 - **Drag-to-reorder devices** in the grid
 - **Sync scroll** (same-origin pages)
 - **Zoom controls** + quick "Compact view" toggle
-- **Header stripping modes** — strip CSP+XFO, strip XFO only, or off
+- **Header stripping modes** - strip CSP+XFO, strip XFO only, or off
 - **Per-device User-Agent rewriting** via dynamic rules
-- **Device bezels** — visual phone/tablet outlines with rotation-aware notch
-- **Force color scheme** (Auto / Light / Dark) — same-origin iframes
+- **Device bezels** - visual phone/tablet outlines with rotation-aware notch
+- **Force color scheme** (Auto / Light / Dark) - same-origin iframes
 - **Saveable presets** with 3 starter presets
-- **Quick simulate** — popup button to simulate the current tab's URL
-- **Persistent state** — remembers URL, devices, rotations, presets, and settings
+- **Quick simulate** - popup button to simulate the current tab's URL
+- **Persistent state** - remembers URL, devices, rotations, presets, and settings
 - **Dark / light / system theme**
-- **Keyboard shortcuts** — `Ctrl+Shift+M` open popup, `Ctrl+L` focus URL, `Ctrl+R` reload all; in the simulator `R` rotate, `C` compare, `D` devices, `S` screenshot, `V` record, `F` frame colour, `+` `−` `0` zoom, `Esc` close
+- **Keyboard shortcuts** - `Ctrl+Shift+M` open popup, `Ctrl+L` focus URL, `Ctrl+R` reload all; in the simulator `R` rotate, `C` compare, `D` devices, `S` screenshot, `V` record, `F` frame colour, `+` `−` `0` zoom, `Esc` close
 - **Real device frames** from [mockup-device-frames](https://github.com/jamesjingyi/mockup-device-frames) in every colour (`bun run frames:sync` pulls new ones), plus a **custom gradient** laid over any of them (the rainbow dot after a device's colours), in screenshots too
-- **Status bar and home indicator** — both drawn as on the device, and each can be turned off in Settings
-- **Screenshots** — framed, on a gradient or solid background, with padding, shadow, aspect ratio and caption; save as PNG/JPEG/WebP or copy
-- **Screen recording** — MP4 (WebM on older Chrome) cropped to the device's frame or just its screen, with a countdown, the page's sound and optionally your microphone and a camera bubble; put it on a backdrop in a 16:9, 4:3, 1:1 or 9:16 video; play it back before saving. `Alt+Shift+R` records without Chrome's share prompt, and after it the record button does too, in that tab
-- **Touch mode** — fingertip cursor, drag to scroll with momentum; pages see a phone in JavaScript too
-- **On-screen keyboard** — focusing a text field slides up an iOS, iPadOS or Android keyboard that types into it; the layout follows `type`, `inputmode` and `enterkeyhint`, and the page shrinks above it as on a phone
-- **Side panel** — the phone next to your page, following whichever tab is active
-- **Full screen over the page** — `Alt+Shift+F`, the right-click menu, or the side panel's button; `Esc` leaves
-- **Right-click menus** — open a page or link in the simulator, or go full screen
-- **Phone inside the page** — add `#mobile-sim` to a page's address (or use the popup's **In the page** button or the right-click menu) and a phone showing that page docks beside it, logged in as you are; see below
+- **Status bar and home indicator** - both drawn as on the device, and each can be turned off in Settings
+- **Screenshots** - framed, on a gradient or solid background, with padding, shadow, aspect ratio and caption; save as PNG/JPEG/WebP or copy
+- **Screen recording** - MP4 (WebM on older Chrome) cropped to the device's frame or just its screen, with a countdown, the page's sound and optionally your microphone and a camera bubble; put it on a backdrop in a 16:9, 4:3, 1:1 or 9:16 video; play it back before saving. `Alt+Shift+R` records without Chrome's share prompt, and after it the record button does too, in that tab
+- **Touch mode** - fingertip cursor, drag to scroll with momentum; pages see a phone in JavaScript too
+- **On-screen keyboard** - focusing a text field slides up an iOS, iPadOS or Android keyboard that types into it; the layout follows `type`, `inputmode` and `enterkeyhint`, and the page shrinks above it as on a phone
+- **Side panel** - the phone next to your page, following whichever tab is active
+- **Full screen over the page** - `Alt+Shift+F`, the right-click menu, or the side panel's button; `Esc` leaves
+- **Right-click menus** - open a page or link in the simulator, or go full screen
+- **Phone inside the page** - add `#mobile-sim` to a page's address (or use the popup's **In the page** button or the right-click menu) and a phone showing that page docks beside it, logged in as you are; see below
 
 ## Phone inside the page
 
@@ -157,17 +157,17 @@ Required justification for Web Store review:
 
 ## Limitations
 
-1. **DPR not truly emulated** — iframes render at the host monitor's pixel ratio. The "3x" label is informational. True DPR emulation requires `chrome.debugger`.
-2. **UA spoofing adds `?__sim_device=<id>`** to the visible URL — this is a deliberate marker so dynamic rules can match each iframe's requests. It's visible in the address bar of "Open in real tab" actions. Disable "Spoof User-Agent" in Settings to suppress it. The page's scripts also see the device (`navigator.userAgent`, `platform`, `maxTouchPoints`, `screen`, `devicePixelRatio`, `matchMedia("(pointer: coarse)")`), but CSS media queries for `pointer` and `hover` still see the real mouse.
-3. **Touch events not synthesized** — touch mode drags to scroll with momentum, but pages receive mouse and pointer events, not `touchstart`/`touchmove`. On-screen keyboard keys type with `insertText`, so the page sees `input` events but no `keydown` for them; there's no autocorrect, word suggestions or long-press accents.
-4. **JavaScript framebusting** — a few sites actively redirect out of iframes. The inline phone notices when a page reloads before it has settled and doesn't reopen (`blocked:frame-busting`).
-5. **Scroll sync** — works across any origin via a tiny postMessage bridge in the device-frame script, which only wakes up inside the simulator's device frames.
-6. **Side panel screenshots and recordings** — Chrome captures tabs, not its side panel, so the side panel has no screenshot or record button. Use full screen or the simulator tab.
-7. **Mixed content** — HTTPS extension page loading HTTP URLs is blocked.
-8. **Force color scheme** — only works on same-origin iframes (cross-origin documents cannot be modified).
-9. **CSP append mode** — `declarativeNetRequest` cannot _append_ to existing header values (only `set` / `remove` / `append-for-some-headers`). The "Strip XFO only" mode preserves the site's CSP intact; "Strip CSP + XFO" removes both. Truly modifying a CSP value would require the `webRequest` API on Firefox or a `chrome.debugger`-based approach.
-10. **Inline phone** — docked, the page makes room with a right margin on `<html>`, which elements with `position: fixed` ignore, so a fixed header can run under the phone. The phone's toolbar has no screenshot or record button; use the simulator tab for those.
-11. **Recording** — Chrome asks to share the tab each time (no extra permission is needed for that). The video keeps the shape it starts with, so a device turned mid-recording shrinks to fit inside it. Full screen over a site whose `Permissions-Policy` blocks `display-capture` can't record; use the simulator tab.
+1. **DPR not truly emulated** - iframes render at the host monitor's pixel ratio. The "3x" label is informational. True DPR emulation requires `chrome.debugger`.
+2. **UA spoofing adds `?__sim_device=<id>`** to the visible URL - this is a deliberate marker so dynamic rules can match each iframe's requests. It's visible in the address bar of "Open in real tab" actions. Disable "Spoof User-Agent" in Settings to suppress it. The page's scripts also see the device (`navigator.userAgent`, `platform`, `maxTouchPoints`, `screen`, `devicePixelRatio`, `matchMedia("(pointer: coarse)")`), but CSS media queries for `pointer` and `hover` still see the real mouse.
+3. **Touch events not synthesized** - touch mode drags to scroll with momentum, but pages receive mouse and pointer events, not `touchstart`/`touchmove`. On-screen keyboard keys type with `insertText`, so the page sees `input` events but no `keydown` for them; there's no autocorrect, word suggestions or long-press accents.
+4. **JavaScript framebusting** - a few sites actively redirect out of iframes. The inline phone notices when a page reloads before it has settled and doesn't reopen (`blocked:frame-busting`).
+5. **Scroll sync** - works across any origin via a tiny postMessage bridge in the device-frame script, which only wakes up inside the simulator's device frames.
+6. **Side panel screenshots and recordings** - Chrome captures tabs, not its side panel, so the side panel has no screenshot or record button. Use full screen or the simulator tab.
+7. **Mixed content** - HTTPS extension page loading HTTP URLs is blocked.
+8. **Force color scheme** - only works on same-origin iframes (cross-origin documents cannot be modified).
+9. **CSP append mode** - `declarativeNetRequest` cannot _append_ to existing header values (only `set` / `remove` / `append-for-some-headers`). The "Strip XFO only" mode preserves the site's CSP intact; "Strip CSP + XFO" removes both. Truly modifying a CSP value would require the `webRequest` API on Firefox or a `chrome.debugger`-based approach.
+10. **Inline phone** - docked, the page makes room with a right margin on `<html>`, which elements with `position: fixed` ignore, so a fixed header can run under the phone. The phone's toolbar has no screenshot or record button; use the simulator tab for those.
+11. **Recording** - opened over a page (the default), the simulator records without Chrome's share prompt. In a tab of its own, Chrome asks to share the tab each time, unless `Alt+Shift+R` started it. The video keeps the shape it starts with, so a device turned mid-recording shrinks to fit inside it. Full screen over a site whose `Permissions-Policy` blocks `display-capture` can't record; use the simulator tab.
 
 ## Edge cases handled
 
@@ -185,10 +185,10 @@ Required justification for Web Store review:
 
 ## Publishing to the Chrome Web Store
 
-1. `bun run package` — writes `dist-crx/mobile-simulator-<version>.zip`.
+1. `bun run package` - writes `dist-crx/mobile-simulator-<version>.zip`.
 2. Upload at https://chrome.google.com/webstore/devconsole.
 3. Provide privacy policy: extension only modifies response headers in user-opened simulator iframes; no data leaves the device.
-4. Be ready for manual review — `<all_urls>` + `declarativeNetRequest` + dynamic rules triggers heightened scrutiny.
+4. Be ready for manual review - `<all_urls>` + `declarativeNetRequest` + dynamic rules triggers heightened scrutiny.
 
 ## License
 

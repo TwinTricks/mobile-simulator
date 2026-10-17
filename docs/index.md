@@ -1,11 +1,11 @@
 ---
-title: Mobile Simulator — Privacy Policy
+title: Mobile Simulator - Privacy Policy
 ---
 
-# Privacy Policy — Mobile Simulator
+# Privacy Policy - Mobile Simulator
 
 **Last updated:** May 24, 2026
-**Extension:** Mobile Simulator — Multi-Device Tester
+**Extension:** Mobile Simulator - Multi-Device Tester
 **Publisher:** TwinTechies
 
 ## Summary
@@ -21,16 +21,16 @@ Mobile Simulator stores the following **locally in your browser** (via `chrome.s
 - Per-device rotation state
 - The last URL you previewed (for convenience on next open)
 - Your settings: theme, zoom, bezel mode, compact view, color-scheme override, CSP handling mode, User-Agent spoofing toggle
-- Session-only state in `chrome.storage.session` (dismissed warnings) — cleared on browser restart
+- Session-only state in `chrome.storage.session` (dismissed warnings) - cleared on browser restart
 
-When you preview a URL inside the simulator, your browser fetches that URL **directly** — exactly as if you'd typed it into the address bar. The extension does not intercept, record, or transmit the content of those pages anywhere.
+When you preview a URL inside the simulator, your browser fetches that URL **directly** - exactly as if you'd typed it into the address bar. The extension does not intercept, record, or transmit the content of those pages anywhere.
 
 ## How the header modifications work
 
 To make the simulator functional, the extension uses Chrome's `declarativeNetRequest` API to:
 
 1. **Remove iframe-blocking headers** (`X-Frame-Options`, `Content-Security-Policy`) on responses to URLs you preview, so they can render inside the simulator's iframes. You can disable or limit this in Settings.
-2. **Rewrite the `User-Agent` header** per device, so target sites serve their mobile HTML. Each iframe URL gets a unique parameter `?__sim_device=<id>` that the dynamic rules match against — these rules **cannot affect your regular browsing**.
+2. **Rewrite the `User-Agent` header** per device, so target sites serve their mobile HTML. Each iframe URL gets a unique parameter `?__sim_device=<id>` that the dynamic rules match against - these rules **cannot affect your regular browsing**.
 
 All dynamic rules are **automatically removed** when you close the simulator tab. No rules persist across browser sessions.
 
@@ -58,7 +58,7 @@ All dynamic rules are **automatically removed** when you close the simulator tab
 | `declarativeNetRequestWithHostAccess` | Rewrites the User-Agent per device via dynamic rules |
 | `host_permissions: <all_urls>` | Required so the header rules apply to whatever URL you preview |
 
-The `<all_urls>` permission is required only because the simulator allows you to preview **any** URL of your choosing — the extension does not know in advance which sites you'll test. No content scripts are injected into general browsing.
+The `<all_urls>` permission is required only because the simulator allows you to preview **any** URL of your choosing - the extension does not know in advance which sites you'll test. No content scripts are injected into general browsing.
 
 ## Data retention and deletion
 

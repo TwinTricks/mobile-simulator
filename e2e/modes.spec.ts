@@ -43,7 +43,7 @@ test("opened in the same tab, closing goes back to the page", async ({
 }) => {
   await popup.evaluate(async () => {
     const stored = (await chrome.storage.local.get("sim-settings"))["sim-settings"] ?? {};
-    await chrome.storage.local.set({ "sim-settings": { ...stored, openIn: "same-tab" } });
+    await chrome.storage.local.set({ "sim-settings": { ...stored, openMode: "same-tab" } });
   });
   const site = await context.newPage();
   await site.goto(`${origin}/start`);

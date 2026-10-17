@@ -400,12 +400,12 @@ function DeviceRow({
   return (
     <div
       className={cn(
-        "hover:bg-accent/40 px-3 py-2.5 first:rounded-t-lg last:rounded-b-lg",
+        "hover:bg-accent/40 first:rounded-t-lg last:rounded-b-lg",
         single && checked && "bg-primary/5 hover:bg-primary/10",
       )}
     >
-      <div className="flex items-center gap-2.5">
-        <label className="flex min-w-0 flex-1 cursor-pointer items-center gap-2.5">
+      <div className={cn("flex items-center", onDelete && "pr-2")}>
+        <label className="flex min-w-0 flex-1 cursor-pointer items-center gap-2.5 px-3 py-2.5">
           {single ? (
             <input
               type="radio"

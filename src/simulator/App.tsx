@@ -490,13 +490,13 @@ function Simulator({ state, settings, updateState, updateSettings }: SimulatorPr
   ) : silentCapture === false ? (
     <span className="text-white/60">
       Chrome will ask to share this tab first.{" "}
-      {MODE === "tab" && settings.openIn !== "over-page" ? (
+      {MODE === "tab" && settings.openMode !== "over-page" ? (
         <>
           Open the simulator over the page to record without asking.{" "}
           <button
             type="button"
             className="text-primary-foreground font-semibold underline underline-offset-2"
-            onClick={() => updateSettings({ openIn: "over-page" })}
+            onClick={() => updateSettings({ openMode: "over-page" })}
           >
             Always open over the page
           </button>
@@ -512,7 +512,7 @@ function Simulator({ state, settings, updateState, updateSettings }: SimulatorPr
   function openStudio() {
     setStudioError(null);
     setStudioOpen(true);
-    setOpenPanel("record");
+    setOpenPanel(null);
   }
 
   function closeStudio() {
@@ -666,6 +666,7 @@ function Simulator({ state, settings, updateState, updateSettings }: SimulatorPr
     switch (action) {
       case "close":
         if (recordingLive) void recorder.stop();
+        else if (openPanel === "record") setOpenPanel(null);
         else if (studioOpen && recorderPhase === "idle") closeStudio();
         // Over a website, Esc with nothing open leaves full screen.
         else if (openPanel === null && MODE === "overlay") closeSimulator();
@@ -1002,7 +1003,7 @@ function Simulator({ state, settings, updateState, updateSettings }: SimulatorPr
           studioOpen={studioOpen}
           onTogglePanel={(panel) => {
             if (panel === "record") {
-              if (studioOpen && openPanel === "record") closeStudio();
+              if (studioOpen) closeStudio();
               else openStudio();
             } else setOpenPanel((open) => (open === panel ? null : panel));
           }}
@@ -1069,6 +1070,8 @@ function Simulator({ state, settings, updateState, updateSettings }: SimulatorPr
             updateRecording(patch);
           }}
           message={studioMessage}
+          settingsOpen={openPanel === "record"}
+          onSettings={() => setOpenPanel((open) => (open === "record" ? null : "record"))}
           onStart={toggleRecording}
           onClose={closeStudio}
         />

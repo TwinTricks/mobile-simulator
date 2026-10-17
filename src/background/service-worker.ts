@@ -42,12 +42,12 @@ async function openSimulator(
 ): Promise<number | undefined> {
   const params = new URLSearchParams();
   if (initialUrl) params.set("url", initialUrl);
-  const { openIn } = await readSettings();
+  const { openMode } = await readSettings();
 
   const target = initialUrl || from?.url;
   if (
     overPage &&
-    openIn === "over-page" &&
+    openMode === "over-page" &&
     from?.id !== undefined &&
     target &&
     isSimulatableUrl(target) &&
@@ -57,7 +57,7 @@ async function openSimulator(
     return from.id;
   }
 
-  if (from?.id !== undefined && openIn === "same-tab") {
+  if (from?.id !== undefined && openMode === "same-tab") {
     const back = from.url?.startsWith(simulatorUrl())
       ? returnUrlOf(from.url)
       : safeReturnUrl(from.url);

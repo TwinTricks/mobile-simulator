@@ -5,7 +5,9 @@ import { PanelField } from "@/components/app/Section";
 import { cn } from "@/lib/utils";
 
 /** The fill of a swatch whose colour is still to be picked. */
-export const RAINBOW = "conic-gradient(#ff5f6d, #ffc371, #a8e063, #2193b0, #7f00ff, #ff5f6d)";
+export const RAINBOW =
+  "radial-gradient(circle closest-side, #fff, rgb(255 255 255 / 0)), " +
+  "conic-gradient(from 90deg, #f00, #ff0, #0f0, #0ff, #00f, #f0f, #f00)";
 
 /** A round colour to pick, named underneath. */
 export function Swatch({
