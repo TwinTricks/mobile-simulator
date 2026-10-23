@@ -45,10 +45,19 @@ import { parseHostList } from "@/shared/inline";
 import type { ColorScheme, CspMode, Device, Settings } from "@/shared/types";
 import { SHORTCUT_HELP } from "../shortcuts";
 import { SelectField } from "./SelectField";
+import { COLOR_INPUT_CLASS } from "./Swatches";
+import { TimePicker } from "./TimePicker";
 
 const DASHED = "rounded-lg border-dashed shadow-none";
 const DEFAULT_STAGE = "#f4f4f5";
 const LAST_USED = "__last";
+const IDLE_CHOICES: [Settings["recording"]["stopAfterIdle"], string][] = [
+  [0, "Never"],
+  [1, "1 min"],
+  [2, "2 mins"],
+  [5, "5 mins"],
+  [10, "10 mins"],
+];
 
 type SettingsPanelProps = {
   settings: Settings;
@@ -193,22 +202,13 @@ export function SettingsPanel({
             label="Force the time shown"
             disabled={!settings.statusBar}
           >
-            <div className="flex items-center gap-1">
-              <Input
-                id="setting-time"
-                type="time"
-                disabled={!settings.statusBar}
-                value={settings.forcedTime}
-                onChange={(event) => updateSettings({ forcedTime: event.target.value })}
-                className={cn(PANEL_INPUT_CLASS, "w-28 tabular-nums")}
-              />
-              {settings.forcedTime && (
-                <ClearButton
-                  label="Use the real time"
-                  onClick={() => updateSettings({ forcedTime: "" })}
-                />
-              )}
-            </div>
+            <TimePicker
+              id="setting-time"
+              disabled={!settings.statusBar}
+              value={settings.forcedTime}
+              battery={settings.batteryLevel}
+              onChange={(forcedTime) => updateSettings({ forcedTime })}
+            />
           </InputRow>
           <InputRow
             id="setting-display-url"
@@ -308,6 +308,44 @@ export function SettingsPanel({
         </Panel>
       </Section>
 
+      <Section title="Recording">
+        <Panel className={DASHED}>
+          <InputRow
+            id="setting-stop-after-idle"
+            icon={Clock}
+            label="Stop after inactivity"
+            hint="Ends a recording after this long with no click, typing, scrolling or pointer movement."
+          >
+            <Select
+              value={String(settings.recording.stopAfterIdle)}
+              onValueChange={(value) =>
+                updateSettings({
+                  recording: {
+                    ...settings.recording,
+                    stopAfterIdle: Number(value) as Settings["recording"]["stopAfterIdle"],
+                  },
+                })
+              }
+            >
+              <SelectTrigger
+                id="setting-stop-after-idle"
+                size="sm"
+                className="bg-card h-8 w-auto min-w-20 gap-1.5 rounded-[8px] px-2.5 text-xs tabular-nums"
+              >
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent align="end">
+                {IDLE_CHOICES.map(([minutes, label]) => (
+                  <SelectItem key={minutes} value={String(minutes)}>
+                    {label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </InputRow>
+        </Panel>
+      </Section>
+
       <Section title="Appearance">
         <Panel className={cn(DASHED, "divide-border/60 divide-y")}>
           <ToggleRow
@@ -320,7 +358,7 @@ export function SettingsPanel({
           />
           {settings.stageBackground && (
             <div className="py-3 pl-7 last:pb-0">
-              <label className="border-input bg-card focus-within:ring-ring/50 flex h-9 cursor-pointer items-center gap-2 rounded-[8px] border px-2 focus-within:ring-2">
+              <label className="border-input bg-card focus-within:ring-ring/50 relative flex h-9 cursor-pointer items-center gap-2 rounded-[8px] border px-2 focus-within:ring-2">
                 <span
                   className="size-5 shrink-0 rounded-full border border-black/10 dark:border-white/15"
                   style={{ backgroundColor: settings.stageBackground }}
@@ -331,7 +369,7 @@ export function SettingsPanel({
                   aria-label="Background colour"
                   value={settings.stageBackground}
                   onChange={(event) => updateSettings({ stageBackground: event.target.value })}
-                  className="sr-only"
+                  className={COLOR_INPUT_CLASS}
                 />
               </label>
             </div>

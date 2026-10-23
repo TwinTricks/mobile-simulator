@@ -81,12 +81,14 @@ async function openSimulator(
 /**
  * Runs in the website's tab, injected by `chrome.scripting`, so it must not reference anything
  * outside its own body. Lays the simulator over the page, or takes it away if it is already
- * there. The simulator asks to be taken away with a message when it is closed.
+ * there (left there with `openOnly`). The simulator asks to be taken away with a message when
+ * it is closed.
  */
-function toggleOverlay(src: string): boolean {
+function toggleOverlay(src: string, openOnly: boolean, theme: string): boolean {
   const ID = "__msim-overlay";
   const existing = document.getElementById(ID);
   const root = document.documentElement;
+  if (existing && openOnly) return true;
   if (existing) {
     existing.dispatchEvent(new Event("msim-close"));
     return false;
@@ -96,11 +98,16 @@ function toggleOverlay(src: string): boolean {
   frame.id = ID;
   frame.src = src;
   frame.allow = "clipboard-write; display-capture; microphone; camera";
+  // The simulator's own background, so the page never shows through while it starts.
+  const dark =
+    theme === "dark" ||
+    (theme === "system" && window.matchMedia("(prefers-color-scheme: dark)").matches);
   frame.setAttribute(
     "style",
     "position:fixed!important;inset:0!important;width:100vw!important;height:100vh!important;" +
       "border:0!important;margin:0!important;padding:0!important;z-index:2147483647!important;" +
-      "background:transparent!important;color-scheme:normal!important;display:block!important",
+      `background:${dark ? "#141317" : "#fdfcf8"}!important;color-scheme:normal!important;` +
+      "display:block!important",
   );
   const overflow = root.style.overflow;
   root.style.overflow = "hidden";
@@ -123,17 +130,35 @@ function toggleOverlay(src: string): boolean {
 
 const OVERLAY_TABS_KEY = "msim-overlay-tabs";
 
-async function overlayTabs(): Promise<Set<number>> {
-  const stored = (await chrome.storage.session.get(OVERLAY_TABS_KEY))[OVERLAY_TABS_KEY];
-  return new Set(Array.isArray(stored) ? (stored as number[]) : []);
+/** Tabs showing the full-screen simulator, with the site it was opened over. */
+async function overlayOrigins(): Promise<Map<number, string>> {
+  const stored: unknown = (await chrome.storage.session.get(OVERLAY_TABS_KEY))[OVERLAY_TABS_KEY];
+  if (typeof stored !== "object" || stored === null || Array.isArray(stored)) return new Map();
+  return new Map(
+    Object.entries(stored)
+      .filter((entry): entry is [string, string] => typeof entry[1] === "string")
+      .map(([id, origin]) => [Number(id), origin]),
+  );
 }
 
-async function setOverlayTab(tabId: number, open: boolean): Promise<void> {
-  const tabs = await overlayTabs();
-  if (open) tabs.add(tabId);
+async function overlayTabs(): Promise<Set<number>> {
+  return new Set((await overlayOrigins()).keys());
+}
+
+async function setOverlayTab(tabId: number, open: boolean, url?: string): Promise<void> {
+  const tabs = await overlayOrigins();
+  if (open) tabs.set(tabId, originOf(url));
   else tabs.delete(tabId);
-  await chrome.storage.session.set({ [OVERLAY_TABS_KEY]: [...tabs] });
+  await chrome.storage.session.set({ [OVERLAY_TABS_KEY]: Object.fromEntries(tabs) });
   await showCloseAction(tabId, open);
+}
+
+function originOf(url: string | undefined): string {
+  try {
+    return url ? new URL(url).origin : "";
+  } catch {
+    return "";
+  }
 }
 
 const ICON_SOURCES: Record<number, string> = { 16: "icons/icon-16.png", 32: "icons/icon-48.png" };
@@ -227,12 +252,47 @@ async function toggleFullScreen(
     const [result] = await chrome.scripting.executeScript({
       target: { tabId: tab.id },
       func: toggleOverlay,
-      args: [src],
+      args: [src, false, (await readSettings()).theme],
     });
-    await setOverlayTab(tab.id, result?.result === true);
+    await setOverlayTab(tab.id, result?.result === true, url);
   } catch {
     // Pages Chrome keeps extensions out of, such as the Web Store.
     await openSimulator(url, tab, false);
+  }
+}
+
+/**
+ * Puts the full-screen simulator back on a page of the site it was opened over, as the page
+ * starts loading, so it is there before the site draws anything. Another site leaves it closed.
+ */
+async function keepOverlay(tab: chrome.tabs.Tab): Promise<void> {
+  if (tab.id === undefined) return;
+  const origin = (await overlayOrigins()).get(tab.id);
+  if (origin === undefined || (await overlayStillThere(tab.id))) return;
+  if (!origin || originOf(tab.url) !== origin || !tab.url || !isSimulatableUrl(tab.url)) {
+    await setOverlayTab(tab.id, false);
+    return;
+  }
+  // The same token as before, so a simulator still starting up is let in.
+  const [session, { theme }] = await Promise.all([
+    chrome.storage.session.get(OVERLAY_TOKEN_KEY),
+    readSettings(),
+  ]);
+  let token: unknown = session[OVERLAY_TOKEN_KEY];
+  if (typeof token !== "string" || !token) {
+    token = crypto.randomUUID();
+    await chrome.storage.session.set({ [OVERLAY_TOKEN_KEY]: token });
+  }
+  const src = `${simulatorUrl()}?mode=overlay&token=${token as string}&url=${encodeURIComponent(tab.url)}`;
+  try {
+    await chrome.scripting.executeScript({
+      target: { tabId: tab.id },
+      func: toggleOverlay,
+      args: [src, true, theme],
+      injectImmediately: true,
+    });
+  } catch {
+    // The page went away while loading; the next update tries again.
   }
 }
 
@@ -393,6 +453,7 @@ async function overlayStillThere(tabId: number): Promise<boolean> {
     const [result] = await chrome.scripting.executeScript({
       target: { tabId },
       func: () => !!document.getElementById("__msim-overlay"),
+      injectImmediately: true,
     });
     return result?.result === true;
   } catch {
@@ -400,22 +461,20 @@ async function overlayStillThere(tabId: number): Promise<boolean> {
   }
 }
 
-chrome.tabs.onUpdated.addListener((tabId, change, tab) => {
-  if (!change.url && change.status !== "complete") return;
+chrome.tabs.onUpdated.addListener((_tabId, change, tab) => {
+  if (!change.url && !change.status) return;
   void (async () => {
-    // Loading another page takes the full-screen simulator away with the old one.
-    if (change.status === "complete" && (await overlayTabs()).has(tabId)) {
-      if (!(await overlayStillThere(tabId))) await setOverlayTab(tabId, false);
-    }
+    // A reload, or another page of the same site, takes the full-screen simulator away with the
+    // old page. Put back as the page starts, and checked again once it has loaded.
+    if (change.status) await keepOverlay(tab);
     await refreshAction(tab);
   })();
 });
 
 chrome.tabs.onRemoved.addListener((tabId) => {
-  void overlayTabs().then((tabs) => {
-    if (!tabs.has(tabId)) return;
-    tabs.delete(tabId);
-    void chrome.storage.session.set({ [OVERLAY_TABS_KEY]: [...tabs] });
+  void overlayOrigins().then((tabs) => {
+    if (!tabs.delete(tabId)) return;
+    void chrome.storage.session.set({ [OVERLAY_TABS_KEY]: Object.fromEntries(tabs) });
   });
 });
 

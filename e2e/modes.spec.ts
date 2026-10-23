@@ -36,6 +36,66 @@ test("full screen lays the simulator over the page, and Esc takes it away", asyn
   await expect(overlay).toHaveCount(0);
 });
 
+test("full screen comes back after a reload, until it is closed or the tab leaves the site", async ({
+  context,
+  popup,
+  origin,
+}) => {
+  const site = await context.newPage();
+  await site.goto(origin);
+  const tabId = await tabIdOf(popup, origin);
+  const open = () =>
+    popup.evaluate(
+      (id) => chrome.runtime.sendMessage({ type: "open-full-screen", tabId: id }),
+      tabId,
+    );
+  const overlay = site.locator("#__msim-overlay");
+  const heading = site
+    .frameLocator("#__msim-overlay")
+    .frameLocator('iframe[title="iPhone 17 Pro"]')
+    .locator("#heading");
+
+  await open();
+  await expect(heading).toHaveText("Hello from the preview page");
+  await site.reload();
+  await expect(heading).toHaveText("Hello from the preview page");
+
+  // Back as the page starts, not once it has loaded: here an image holds the load up for 4s.
+  await site.route(`${origin}/slow-image`, async (route) => {
+    await new Promise((resolve) => setTimeout(resolve, 4000));
+    await route.fulfill({ status: 204 });
+  });
+  await site.route(`${origin}/slow`, (route) =>
+    route.fulfill({ contentType: "text/html", body: '<p>Slow page</p><img src="/slow-image">' }),
+  );
+  const start = Date.now();
+  await site.goto(`${origin}/slow`, { waitUntil: "commit" });
+  expect(await site.evaluate(() => document.readyState)).not.toBe("complete");
+  await expect(overlay).toBeAttached({ timeout: 2000 });
+  expect(Date.now() - start).toBeLessThan(2000);
+  await site.waitForLoadState("load");
+  // Another page of the same site keeps it too.
+  await site.goto(`${origin}/another-page`);
+  await expect(heading).toHaveText("Hello from the preview page");
+
+  // Closed, it stays closed.
+  await site
+    .frameLocator("#__msim-overlay")
+    .getByRole("button", { name: "Exit full screen" })
+    .click();
+  await expect(overlay).toHaveCount(0);
+  await site.reload();
+  await site.waitForTimeout(1000);
+  await expect(overlay).toHaveCount(0);
+
+  // Another site leaves it behind.
+  await open();
+  await expect(heading).toHaveText("Hello from the preview page");
+  await site.goto(origin.replace("127.0.0.1", "localhost"));
+  await site.waitForTimeout(1000);
+  await expect(overlay).toHaveCount(0);
+});
+
 test("opened in the same tab, closing goes back to the page", async ({
   context,
   popup,

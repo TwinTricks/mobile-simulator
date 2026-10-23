@@ -9,6 +9,12 @@ export const RAINBOW =
   "radial-gradient(circle closest-side, #fff, rgb(255 255 255 / 0)), " +
   "conic-gradient(from 90deg, #f00, #ff0, #0f0, #0ff, #00f, #f0f, #f00)";
 
+/**
+ * A colour input laid unseen over its whole field. Chrome won't open the picker for one hidden
+ * with `sr-only`, and opens it under the field this way.
+ */
+export const COLOR_INPUT_CLASS = "absolute inset-0 size-full cursor-pointer opacity-0";
+
 /** A round colour to pick, named underneath. */
 export function Swatch({
   label,
@@ -75,7 +81,7 @@ export function ColorField({
     <PanelField label={label} htmlFor={id}>
       <label
         htmlFor={id}
-        className="border-input bg-card focus-within:ring-ring/50 flex h-9 cursor-pointer items-center gap-2 rounded-[8px] border px-2 focus-within:ring-2"
+        className="border-input bg-card focus-within:ring-ring/50 relative flex h-9 cursor-pointer items-center gap-2 rounded-[8px] border px-2 focus-within:ring-2"
       >
         <span
           className="size-5 shrink-0 rounded-full border border-black/10 dark:border-white/15"
@@ -87,7 +93,7 @@ export function ColorField({
           type="color"
           value={value}
           onChange={(event) => onChange(event.target.value)}
-          className="sr-only"
+          className={COLOR_INPUT_CLASS}
         />
       </label>
     </PanelField>

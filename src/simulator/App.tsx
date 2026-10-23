@@ -62,6 +62,7 @@ import {
 } from "./interaction-sync";
 import { MODE, closeSimulator, overlayAllowed } from "./mode";
 import { formatElapsed } from "./recording/recorder";
+import { useIdleStop } from "./recording/use-idle-stop";
 import { useRecorder } from "./recording/use-recorder";
 import { backdropColor, backdropCss, isStudio } from "./recording/studio";
 import { StudioBar } from "./components/StudioBar";
@@ -445,6 +446,14 @@ function Simulator({ state, settings, updateState, updateSettings }: SimulatorPr
     onWarning: showWarning,
   });
   const recorderPhase = recorder.state.phase;
+  useIdleStop(recorderPhase === "recording", recording.stopAfterIdle, () => {
+    void recorder.stop();
+    const minutes = recording.stopAfterIdle;
+    showWarning(
+      `Recording stopped after ${minutes} minute${minutes === 1 ? "" : "s"} with nothing happening on screen.`,
+      "record-idle",
+    );
+  });
   const recordingLive = recorderPhase === "countdown" || recorderPhase === "recording";
   // From Chrome's share prompt until the video is finished.
   const recordingSetUp =

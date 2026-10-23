@@ -423,6 +423,32 @@ function hideScrollbars(initiallyHidden: boolean) {
 }
 
 /**
+ * While the simulator records, tells it that someone is using the page (at most every second),
+ * so a recording left running with nothing happening can stop.
+ */
+function activityReporter() {
+  const EVENTS = ["pointermove", "pointerdown", "keydown", "wheel", "scroll", "input"] as const;
+  let last = 0;
+  const report = () => {
+    const now = Date.now();
+    if (now - last < 1000) return;
+    last = now;
+    window.parent.postMessage({ __msimActive: true }, "*");
+  };
+  let watching = false;
+  window.addEventListener("message", (event) => {
+    if (event.source !== window.parent) return;
+    const on = (event.data as { __msimWatch?: unknown } | null)?.__msimWatch;
+    if (typeof on !== "boolean" || on === watching) return;
+    watching = on;
+    for (const type of EVENTS) {
+      if (on) window.addEventListener(type, report, { capture: true, passive: true });
+      else window.removeEventListener(type, report, { capture: true });
+    }
+  });
+}
+
+/**
  * While the simulator records with a drawn cursor: hides the real one, which a tab capture
  * leaves out anyway, and tells the simulator where the pointer is so it can draw it.
  */
@@ -1247,6 +1273,7 @@ if (identity) {
   touchMode(identity.touch);
   pwaReporter();
   recordingCursor();
+  activityReporter();
   forwardShortcuts();
   scrollBridge();
   topColorReporter();

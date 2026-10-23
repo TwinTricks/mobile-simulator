@@ -74,6 +74,10 @@ export const recordingSettingsSchema = z.object({
   cameraId: z.string().catch(""),
   microphoneId: z.string().catch(""),
   quality: z.enum(["good", "high", "best"]).catch("high"),
+  /** Minutes without a click, key, scroll or pointer move before a recording stops; 0 never. */
+  stopAfterIdle: z
+    .union([z.literal(0), z.literal(1), z.literal(2), z.literal(5), z.literal(10)])
+    .catch(2),
 });
 
 /** The phone drawn inside a website's own page, opened with `#mobile-sim` in its address. */
