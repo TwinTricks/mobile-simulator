@@ -8,6 +8,7 @@ export type ShortcutAction =
   | "zoom-in"
   | "zoom-out"
   | "zoom-fit"
+  | "qr"
   | "close";
 
 // Must match SHORTCUT_KEYS in src/content/mobile-identity.ts, which forwards them from the pages.
@@ -23,6 +24,7 @@ const KEYS: Record<string, ShortcutAction> = {
   "-": "zoom-out",
   _: "zoom-out",
   "0": "zoom-fit",
+  q: "qr",
   escape: "close",
 };
 
@@ -36,6 +38,7 @@ export const SHORTCUT_HELP: [keys: string[], what: string][] = [
   [["F"], "Next frame colour"],
   [["+", "−"], "Zoom in and out"],
   [["0"], "Zoom to fit"],
+  [["Q"], "QR code to open the page on a phone"],
   [["Esc"], "Close panels"],
 ];
 

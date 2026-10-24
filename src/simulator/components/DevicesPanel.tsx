@@ -27,6 +27,7 @@ const TABS = [
 const CATEGORIES: { category: DeviceCategory; label: string }[] = [
   { category: "phone", label: "Phones" },
   { category: "tablet", label: "Tablets" },
+  { category: "watch", label: "Watches" },
   { category: "desktop", label: "Desktop" },
 ];
 

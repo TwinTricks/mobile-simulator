@@ -383,7 +383,7 @@ Everything else uses permissions the extension already has.
 
 | Phase | Status      |
 | ----- | ----------- |
-| 9     | Not started |
+| 9     | Done        |
 | 10    | Not started |
 | 11    | Not started |
 | 12    | Not started |

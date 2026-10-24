@@ -7,6 +7,7 @@ import type { Device, DeviceCategory } from "@/shared/types";
 // Padding of the drawn CSS bezels, for devices that have no frame image.
 export const PHONE_BEZEL = { side: 14, end: 28 };
 export const TABLET_BEZEL = 22;
+export const WATCH_BEZEL = 12;
 
 /**
  * Screen corner radius as a share of the short side, so the page's corners stay inside the
@@ -15,9 +16,16 @@ export const TABLET_BEZEL = 22;
 export const SCREEN_ROUNDING: Record<DeviceCategory, number> = {
   phone: 0.13,
   tablet: 0.03,
+  watch: 0.22,
   desktop: 0,
   custom: 0,
 };
+
+/** The screen's corner radius at this size; a round screen is a circle. */
+export function screenRadius(device: Device, width: number, height: number): number {
+  const short = Math.min(width, height);
+  return device.round ? short / 2 : short * SCREEN_ROUNDING[device.category];
+}
 // The screen border drawn when bezels are off.
 const PLAIN_BORDER = 1;
 
@@ -79,6 +87,7 @@ export type StatusBarSpec = { kind: StatusBarKind; height: number };
  */
 export function statusBar(device: Device, rotated: boolean): StatusBarSpec | null {
   const ua = device.ua ?? "";
+  if (device.category === "watch") return null;
   if (ua.includes("iPad")) return { kind: "ipad", height: 24 };
   if (rotated && device.category === "phone") return null;
   if (device.id.startsWith("iphone-se")) return { kind: "classic", height: 20 };
@@ -115,6 +124,30 @@ export function browserChrome(device: Device, rotated: boolean): BrowserChromeSp
     return { kind: "safari", top: 0, bottom: SAFARI_BAR + SAFARI_TOOLBAR + safe };
   }
   if (ua.includes("Android")) return { kind: "chrome", top: 56, bottom: 0 };
+  return null;
+}
+
+export type SafeArea = { top: number; right: number; bottom: number; left: number };
+
+/**
+ * What `env(safe-area-inset-*)` gives a page that draws edge to edge on the real device: clear
+ * of the status bar, notch or Dynamic Island, and the home indicator. Null where there is
+ * nothing to keep clear of.
+ */
+export function safeAreaInsets(device: Device, rotated: boolean): SafeArea | null {
+  if (device.category !== "phone" && device.category !== "tablet") return null;
+  const ua = device.ua ?? "";
+  const none = { top: 0, right: 0, bottom: 0, left: 0 };
+  if (ua.includes("iPad")) return { ...none, top: 24, bottom: 20 };
+  if (ua.includes("iPhone")) {
+    if (device.id.startsWith("iphone-se")) return rotated ? null : { ...none, top: 20 };
+    // On its side the cut-out could be on either edge, so iOS keeps both clear.
+    return rotated ? { top: 0, right: 62, bottom: 21, left: 62 } : { ...none, top: 62, bottom: 34 };
+  }
+  if (ua.includes("Android")) {
+    if (rotated && device.category === "phone") return null;
+    return { ...none, top: device.category === "phone" ? 32 : 26 };
+  }
   return null;
 }
 
@@ -169,6 +202,9 @@ export function frameBox(
   }
   if (bezel && device.category === "tablet") {
     return { width: width + 2 * TABLET_BEZEL, height: height + 2 * TABLET_BEZEL };
+  }
+  if (bezel && device.category === "watch") {
+    return { width: width + 2 * WATCH_BEZEL, height: height + 2 * WATCH_BEZEL };
   }
   return { width: width + 2 * PLAIN_BORDER, height: height + 2 * PLAIN_BORDER };
 }

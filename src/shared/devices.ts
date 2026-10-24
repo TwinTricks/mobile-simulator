@@ -20,6 +20,17 @@ const GALAXY_TAB_UA =
   "Mozilla/5.0 (Linux; Android 13; SM-X710) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
 const SURFACE_DUO_UA =
   "Mozilla/5.0 (Linux; Android 12; Surface Duo) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36";
+// Open, the Fold asks for desktop-class pages as a tablet does, so there is no "Mobile".
+const GALAXY_FOLD_OPEN_UA =
+  "Mozilla/5.0 (Linux; Android 14; SM-F946B) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
+const ONEPLUS_UA =
+  "Mozilla/5.0 (Linux; Android 14; CPH2581) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36";
+const NOTHING_UA =
+  "Mozilla/5.0 (Linux; Android 14; A065) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36";
+const APPLE_WATCH_UA =
+  "Mozilla/5.0 (Watch; CPU Watch OS 11_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/22R349";
+const GALAXY_WATCH_UA =
+  "Mozilla/5.0 (Linux; Android 14; SM-L310) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/2.0 Chrome/120.0.0.0 Mobile Safari/537.36";
 
 function frameDeviceUa({ platform, uaModel }: FrameDeviceSpec): string | null {
   switch (platform) {
@@ -59,14 +70,22 @@ const CLASSIC_DEVICES: readonly Device[] = [
   { id: "galaxy-s24",    name: "Galaxy S24",       width: 360,  height: 780,  dpr: 3,     category: "phone",   ua: GALAXY_S_UA },
   { id: "galaxy-s24u",   name: "Galaxy S24 Ultra", width: 412,  height: 915,  dpr: 3.5,   category: "phone",   ua: GALAXY_SU_UA },
   { id: "galaxy-fold",   name: "Galaxy Z Fold 5",  width: 344,  height: 882,  dpr: 3,     category: "phone",   ua: GALAXY_FOLD_UA },
+  { id: "oneplus-12",    name: "OnePlus 12",       width: 412,  height: 915,  dpr: 2.625, category: "phone",   ua: ONEPLUS_UA },
+  { id: "nothing-2",     name: "Nothing Phone (2)", width: 412, height: 915,  dpr: 2.625, category: "phone",   ua: NOTHING_UA },
 
   // Tablets
+  { id: "galaxy-fold-open", name: "Galaxy Z Fold 5 (open)", width: 904, height: 882, dpr: 2.4, category: "tablet", ua: GALAXY_FOLD_OPEN_UA, hinge: true },
   { id: "ipad-mini",     name: "iPad Mini",        width: 768,  height: 1024, dpr: 2,     category: "tablet",  ua: IPAD_UA },
   { id: "ipad-air",      name: "iPad Air",         width: 820,  height: 1180, dpr: 2,     category: "tablet",  ua: IPAD_UA },
   { id: "ipad-pro-11",   name: 'iPad Pro 11"',     width: 834,  height: 1194, dpr: 2,     category: "tablet",  ua: IPAD_UA },
   { id: "ipad-pro-13",   name: 'iPad Pro 13"',     width: 1024, height: 1366, dpr: 2,     category: "tablet",  ua: IPAD_UA },
   { id: "galaxy-tab-s9", name: "Galaxy Tab S9",    width: 753,  height: 1205, dpr: 2,     category: "tablet",  ua: GALAXY_TAB_UA },
   { id: "surface-duo",   name: "Surface Duo",      width: 540,  height: 720,  dpr: 2.5,   category: "tablet",  ua: SURFACE_DUO_UA },
+
+  // Watches
+  { id: "apple-watch-ultra-2", name: "Apple Watch Ultra 2", width: 205, height: 251, dpr: 2, category: "watch", ua: APPLE_WATCH_UA },
+  { id: "apple-watch-10-46", name: "Apple Watch Series 10 (46mm)", width: 208, height: 248, dpr: 2, category: "watch", ua: APPLE_WATCH_UA },
+  { id: "galaxy-watch-7-44", name: "Galaxy Watch 7 (44mm)", width: 240, height: 240, dpr: 2, category: "watch", ua: GALAXY_WATCH_UA, round: true },
 
   // Desktops keep the browser's real User-Agent.
   { id: "laptop-13",     name: 'Laptop 13"',       width: 1280, height: 800,  dpr: 2,     category: "desktop", ua: null },

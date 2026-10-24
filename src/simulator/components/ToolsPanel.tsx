@@ -117,6 +117,40 @@ export function ToolsPanel({
         </Panel>
       </Section>
 
+      <Section title="Check" description="Problems a phone shows up that a desktop window hides.">
+        <Panel className="space-y-4 rounded-lg border-dashed shadow-none">
+          <ToggleRow
+            id="tool-tap-targets"
+            label="Small tap targets"
+            hint="Outlines buttons and links too small to tap, and counts them under each device."
+            checked={settings.tapTargets}
+            onChange={(tapTargets) => updateSettings({ tapTargets })}
+          />
+          <SelectField
+            id="tool-tap-target-size"
+            label="Smallest target"
+            value={String(settings.tapTargetSize)}
+            disabled={!settings.tapTargets}
+            onValueChange={(value) =>
+              updateSettings({ tapTargetSize: Number(value) as Settings["tapTargetSize"] })
+            }
+            options={[
+              ["0", "Device guidance (44 iOS, 48 Android)"],
+              ["44", "44 px"],
+              ["48", "48 px"],
+              ["24", "24 px (WCAG AA minimum)"],
+            ]}
+          />
+          <ToggleRow
+            id="tool-safe-area-guides"
+            label="Show safe areas"
+            hint="Shades the status bar, notch and home indicator areas a page should keep clear."
+            checked={settings.safeAreaGuides}
+            onChange={(safeAreaGuides) => updateSettings({ safeAreaGuides })}
+          />
+        </Panel>
+      </Section>
+
       <Section
         title="Compare sites"
         description="The same page on localhost, staging and production, side by side."

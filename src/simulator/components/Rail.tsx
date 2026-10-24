@@ -4,6 +4,7 @@ import {
   Globe,
   Maximize,
   Palette,
+  QrCode,
   PanelRight,
   RefreshCw,
   RotateCw,
@@ -45,6 +46,8 @@ type RailProps = {
   onRotate: () => void;
   onZoom: () => void;
   onReload: () => void;
+  /** Null while there is no page to share. */
+  onQr: (() => void) | null;
   /** Null where screenshots can't be taken. */
   onScreenshot: (() => void) | null;
   /** How far the full-page screenshot has got, or null when none is being taken. */
@@ -77,6 +80,7 @@ export function Rail({
   onRotate,
   onZoom,
   onReload,
+  onQr,
   onScreenshot,
   fullPageProgress,
   onRecord,
@@ -163,6 +167,11 @@ export function Rail({
       <ToolbarButton label="Reload" title="Reload (Ctrl+R)" onClick={onReload}>
         <RefreshCw />
       </ToolbarButton>
+      {onQr ? (
+        <ToolbarButton label="Open on your phone" title="QR code for this page (Q)" onClick={onQr}>
+          <QrCode />
+        </ToolbarButton>
+      ) : null}
       <Divider />
       {onScreenshot && fullPageProgress !== null ? (
         <Labelled caption={`${Math.round(fullPageProgress * 100)}%`}>

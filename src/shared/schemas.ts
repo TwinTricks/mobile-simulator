@@ -3,7 +3,7 @@ import { z } from "zod";
 import { DEFAULT_VISIBLE_IDS } from "@/shared/devices";
 import { DEFAULT_INLINE_HOSTS } from "@/shared/inline";
 
-export const deviceCategorySchema = z.enum(["phone", "tablet", "desktop", "custom"]);
+export const deviceCategorySchema = z.enum(["phone", "tablet", "watch", "desktop", "custom"]);
 
 export const deviceSchema = z.object({
   id: z.string(),
@@ -13,6 +13,10 @@ export const deviceSchema = z.object({
   dpr: z.number(),
   category: deviceCategorySchema,
   ua: z.string().nullable(),
+  /** A circular screen, as on a Galaxy Watch. */
+  round: z.boolean().optional(),
+  /** The screen folds down the middle, as on an open Galaxy Z Fold. */
+  hinge: z.boolean().optional(),
 });
 
 export const presetSchema = z.object({
@@ -129,6 +133,17 @@ export const settingsSchema = z.object({
   rulers: z.boolean().catch(false),
   /** Spacing of the grid laid over each screen, in CSS pixels; 0 is no grid. */
   gridSize: z.union([z.literal(0), z.literal(4), z.literal(8), z.literal(16)]).catch(0),
+  /** Outlines buttons and links too small to tap comfortably. */
+  tapTargets: z.boolean().catch(false),
+  /** The smallest comfortable target in CSS pixels; 0 is the device's own guidance. */
+  tapTargetSize: z.union([z.literal(0), z.literal(24), z.literal(44), z.literal(48)]).catch(0),
+  /**
+   * Pages that ask for `viewport-fit=cover` draw under the status bar and get the device's
+   * `env(safe-area-inset-*)`; `always` does it for every page, `off` for none.
+   */
+  safeArea: z.enum(["auto", "always", "off"]).catch("auto"),
+  /** Shades the areas a page should keep its content out of. */
+  safeAreaGuides: z.boolean().catch(false),
   /** Off hides the page's scrollbars, as a phone does; on keeps them. */
   nativeScrollbars: z.boolean().catch(false),
   /** Shown first each time the simulator opens; empty keeps the last devices. */
@@ -182,6 +197,8 @@ export const simulatorStateSchema = z.object({
   frameColors: z.record(z.string(), z.string()).catch({}),
   /** A gradient laid over a device's frame colour, by device id. */
   frameTints: z.record(z.string(), frameTintSchema).catch({}),
+  /** The host a phone reaches a local site on (`192.168.1.20:5173`), by the site's origin. */
+  qrHosts: z.record(z.string(), z.string()).catch({}),
   /** Sites remembered for comparing, as origins. */
   environments: z.array(z.string()).catch([]),
   /** The remembered sites shown side by side; two or more turns comparing on. */

@@ -10,6 +10,7 @@ import { frameVariant, frameVariants } from "@/shared/frames";
 import {
   frameIdentity,
   identityName,
+  tapTargetMinimum,
   type PwaMessage,
   type ScrollbarsMessage,
   type TouchMessage,
@@ -18,6 +19,7 @@ import { sendRequest } from "@/shared/messages";
 import { overlaySchema } from "@/shared/schemas";
 import type { Device, Overlay, RecordingSettings, Settings, SimulatorState } from "@/shared/types";
 import { rememberUrl } from "@/shared/recent-urls";
+import { originOf } from "@/shared/qr-address";
 import { normalizeUrl } from "@/shared/url";
 import {
   dismissWarning,
@@ -71,6 +73,7 @@ import { RecordingStudio, placeStudioBox } from "./components/RecordingStudio";
 import { captureScreens, settle, type Capture } from "./screenshot/capture";
 import { captureFullPage, type FullPageShot } from "./screenshot/full-page";
 import { FullPageDialog } from "./components/FullPageDialog";
+import { QrDialog } from "./components/QrDialog";
 import { isTyping, shortcutFor, stepZoom, type ShortcutAction } from "./shortcuts";
 import { useFollowedTabUrl } from "./use-followed-tab";
 import { useSimulator } from "./use-simulator";
@@ -133,6 +136,7 @@ function Simulator({ state, settings, updateState, updateSettings }: SimulatorPr
   const [capturing, setCapturing] = useState(false);
   const [capture, setCapture] = useState<Capture | null>(null);
   const [fullPages, setFullPages] = useState<FullPageShot[] | null>(null);
+  const [qrOpen, setQrOpen] = useState(false);
   const [fullPageProgress, setFullPageProgress] = useState<number | null>(null);
   const [overlayImages, setOverlayImages] = useState<OverlayImages>({});
   const [consoleOpen, setConsoleOpen] = useState(false);
@@ -708,6 +712,9 @@ function Simulator({ state, settings, updateState, updateSettings }: SimulatorPr
       case "zoom-fit":
         setZoom(0);
         return;
+      case "qr":
+        if (url) setQrOpen((open) => !open);
+        return;
     }
   }
 
@@ -813,6 +820,9 @@ function Simulator({ state, settings, updateState, updateSettings }: SimulatorPr
         tint={state.frameTints[device.id]}
         breakpoint={settings.breakpoints}
         guides={{ rulers: settings.rulers, grid: settings.gridSize }}
+        tapTargets={settings.tapTargets ? tapTargetMinimum(device, settings.tapTargetSize) : 0}
+        safeArea={settings.safeArea}
+        safeAreaGuides={settings.safeAreaGuides}
         browser={
           settings.browserChrome && !(settings.detectPwa && pwaKeys[key])
             ? {
@@ -1020,6 +1030,7 @@ function Simulator({ state, settings, updateState, updateSettings }: SimulatorPr
           onRotate={rotate}
           onZoom={() => setZoom(nextInCycle<number>(ZOOM_LEVELS, settings.zoom))}
           onReload={reloadAll}
+          onQr={url ? () => setQrOpen(true) : null}
           onScreenshot={canScreenshot ? () => void takeScreenshot() : null}
           fullPageProgress={fullPageProgress}
           onRecord={canScreenshot ? toggleRecording : null}
@@ -1055,6 +1066,20 @@ function Simulator({ state, settings, updateState, updateSettings }: SimulatorPr
 
       {fullPages && (
         <FullPageDialog shots={fullPages} url={url} onClose={() => setFullPages(null)} />
+      )}
+
+      {qrOpen && url && (
+        <QrDialog
+          url={liveUrl ?? url}
+          host={state.qrHosts[originOf(liveUrl ?? url)] ?? ""}
+          onHost={(host) =>
+            updateState((s) => ({
+              ...s,
+              qrHosts: { ...s.qrHosts, [originOf(liveUrl ?? url)]: host },
+            }))
+          }
+          onClose={() => setQrOpen(false)}
+        />
       )}
 
       <RecordingStudio

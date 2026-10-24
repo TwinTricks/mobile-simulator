@@ -78,6 +78,53 @@ const SCROLLBAR_PAGE = `<!doctype html>
   </body>
 </html>`;
 
+/** Two buttons, one too small to tap, and a small link inside running text. */
+const TAP_TARGET_PAGE = `<!doctype html>
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width">
+    <title>Tap targets</title>
+    <style>body{margin:0;font:16px sans-serif} button{display:block;margin:20px;padding:0;border:0}</style>
+  </head>
+  <body>
+    <button id="small" style="width:30px;height:30px">x</button>
+    <button id="big" style="width:60px;height:60px">Big</button>
+    <p>Read the <a href="#terms">terms</a> before you sign up for the newsletter today.</p>
+  </body>
+</html>`;
+
+/**
+ * Uses `env(safe-area-inset-*)` in a `<style>`, a linked sheet with a shorthand, a sheet from
+ * another origin, a `style` attribute, and a rule added after load. `cover` asks to draw edge
+ * to edge.
+ */
+function safeAreaPage(cover: boolean, otherOrigin: string): string {
+  return `<!doctype html>
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width${cover ? ", viewport-fit=cover" : ""}">
+    <title>Safe areas</title>
+    <link rel="stylesheet" href="/safe.css">
+    <link rel="stylesheet" href="${otherOrigin}/cors.css">
+    <style>body{margin:0} #top{padding-top:env(safe-area-inset-top, 5px)}</style>
+  </head>
+  <body>
+    <div id="top">top</div>
+    <div id="linked">linked</div>
+    <div id="cross">cross</div>
+    <div id="inline" style="padding-left: max(env(safe-area-inset-left), 3px)">inline</div>
+    <div id="late">late</div>
+    <script>
+      setTimeout(() => {
+        const style = document.createElement("style");
+        style.textContent = "#late{padding-bottom:env(safe-area-inset-bottom)}";
+        document.head.append(style);
+      }, 300);
+    </script>
+  </body>
+</html>`;
+}
+
 type Harness = {
   context: BrowserContext;
   extensionId: string;
@@ -127,6 +174,30 @@ export const test = base.extend<Harness, WorkerHarness>({
         if (request.url === "/manifest.json") {
           response.writeHead(200, { "content-type": "application/manifest+json" });
           response.end(JSON.stringify({ name: "Test app", display: "standalone" }));
+          return;
+        }
+        if (request.url === "/safe.css") {
+          response.writeHead(200, { "content-type": "text/css" });
+          response.end("#linked{padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom)}");
+          return;
+        }
+        if (request.url === "/cors.css") {
+          response.writeHead(200, {
+            "content-type": "text/css",
+            "access-control-allow-origin": "*",
+          });
+          response.end("#cross{margin-top:calc(env(safe-area-inset-top) + 1px)}");
+          return;
+        }
+        if (request.url?.startsWith("/safe-area")) {
+          const other = `http://${(request.headers.host ?? "").replace("127.0.0.1", "localhost")}`;
+          response.writeHead(200, { "content-type": "text/html" });
+          response.end(safeAreaPage(!request.url.includes("plain"), other));
+          return;
+        }
+        if (request.url?.startsWith("/tap-targets")) {
+          response.writeHead(200, { "content-type": "text/html" });
+          response.end(TAP_TARGET_PAGE);
           return;
         }
         if (request.url?.startsWith("/pwa")) {

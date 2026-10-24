@@ -246,6 +246,20 @@ export function SettingsPanel({
             checked={settings.homeIndicator}
             onChange={(homeIndicator) => updateSettings({ homeIndicator })}
           />
+          <div className="py-3 last:pb-0">
+            <SelectField
+              id="setting-safe-area"
+              label="Edge to edge (safe areas)"
+              value={settings.safeArea}
+              onValueChange={(value) => updateSettings({ safeArea: value as Settings["safeArea"] })}
+              options={[
+                ["auto", "When the page asks (viewport-fit=cover)"],
+                ["always", "Every page"],
+                ["off", "Never"],
+              ]}
+              hint="The page draws under the status bar and home indicator, and env(safe-area-inset-*) gives the device's real insets. Not with the browser bars on."
+            />
+          </div>
         </Panel>
       </Section>
 

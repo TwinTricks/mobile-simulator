@@ -8,16 +8,18 @@ import { cn } from "@/lib/utils";
 import { breakpointFor } from "@/shared/breakpoints";
 import { SLOW_LOAD_MS } from "@/shared/constants";
 import { deviceSize } from "@/shared/devices";
-import type { ColorScheme, Device, FrameTint, Overlay } from "@/shared/types";
+import type { ColorScheme, Device, FrameTint, Overlay, Settings } from "@/shared/types";
 import { applyColorScheme, stepHistory } from "../frame-bridge";
 import { tintMaskUrl } from "../frame-tint";
 import {
-  SCREEN_ROUNDING,
+  WATCH_BEZEL,
   browserChrome,
   frameLayout,
   type BrowserChromeSpec,
   homeIndicator,
   placedFrame,
+  safeAreaInsets,
+  screenRadius,
   statusBar,
 } from "../frame-box";
 import { keyboardHeight, keyboardLayout, keyboardOs } from "../keyboard/layout";
@@ -26,6 +28,8 @@ import { BrowserChrome, type BrowserAction } from "./BrowserChrome";
 import { DeviceKeyboard } from "./DeviceKeyboard";
 import { DeviceStatusBar } from "./DeviceStatusBar";
 import { ScreenGuides } from "./ScreenGuides";
+import { SafeAreaGuides, usePageCover, useSafeAreaInsets } from "./SafeArea";
+import { TapTargetBadge, useTapTargets } from "./TapTargets";
 
 const DEVICE_TURN_MS = 450;
 const DEVICE_ZOOM_MS = 280;
@@ -76,6 +80,12 @@ type DeviceFrameProps = {
   environment?: { label: string; color: string };
   /** Set to draw Safari's or Chrome's bars around the page, showing this address. */
   browser?: BrowserProps;
+  /** Checks the page for tap targets under this many CSS pixels; 0 doesn't. */
+  tapTargets?: number;
+  /** When the page draws under the status bar and gets the device's safe-area insets. */
+  safeArea?: Settings["safeArea"];
+  /** Shades the device's safe areas. */
+  safeAreaGuides?: boolean;
 };
 
 type BrowserProps = { address: string; onReload: () => void; onAddress: () => void };
@@ -107,6 +117,9 @@ export function DeviceFrame({
   frameKey = device.id,
   environment,
   browser,
+  tapTargets = 0,
+  safeArea = "off",
+  safeAreaGuides = false,
 }: DeviceFrameProps) {
   const iframeRef = useRef<HTMLIFrameElement | null>(null);
   const bodyRef = useRef<HTMLDivElement | null>(null);
@@ -128,6 +141,9 @@ export function DeviceFrame({
   const keyboardKind = keyboard ? keyboardOs(device) : null;
   const keys = useDeviceKeyboard(iframeRef, keyboardKind, `${src}|${reloadToken}`);
   const keyboardHeightPx = keyboardKind ? keyboardHeight(keyboardKind, rotated) : 0;
+  const loadKey = `${frameSrc}|${reloadToken}`;
+  const targets = useTapTargets(iframeRef, frameSrc ? tapTargets : 0, loadKey);
+  const cover = usePageCover(iframeRef, loadKey);
 
   useEffect(() => {
     setStopped(false);
@@ -167,7 +183,9 @@ export function DeviceFrame({
 
   const isPhone = device.category === "phone";
   const isTablet = device.category === "tablet";
-  const bezelOn = !placed && bezel && (isPhone || isTablet);
+  const isWatch = device.category === "watch";
+  const bezelOn = !placed && bezel && (isPhone || isTablet || isWatch);
+  const watchRadius = screenRadius(device, screenWidth, screenHeight);
 
   const status = showStatusBar ? statusBar(device, rotated) : null;
   const indicator = showHomeIndicator ? homeIndicator(device, rotated) : null;
@@ -175,6 +193,10 @@ export function DeviceFrame({
   const bars = browser ? browserChrome(device, rotated) : null;
   // Safari's bottom bars go behind the keyboard while it is up.
   const barsHeight = (bars?.top ?? 0) + (keys.raised ? 0 : (bars?.bottom ?? 0));
+  // Inside the browser's bars a page never reaches the screen's edges.
+  const insets = safeAreaInsets(device, rotated);
+  const edgeToEdge = !!insets && !bars && (safeArea === "always" || (safeArea === "auto" && cover));
+  useSafeAreaInsets(iframeRef, edgeToEdge ? insets : null, loadKey);
   // Pages left on auto follow the system, so the bar does too.
   const darkStatus =
     colorScheme === "dark" ||
@@ -206,6 +228,7 @@ export function DeviceFrame({
             dark={darkStatus}
             battery={statusDetails?.battery}
             forcedTime={statusDetails?.time}
+            overlay={edgeToEdge}
           />
         )}
         {bars && browser && <BrowserChrome side="top" {...barProps(bars, browser)} />}
@@ -224,7 +247,11 @@ export function DeviceFrame({
           className="block border-none bg-white"
           style={{
             width,
-            height: height - statusHeight - barsHeight - (keys.raised ? keyboardHeightPx : 0),
+            height:
+              height -
+              (edgeToEdge ? 0 : statusHeight) -
+              barsHeight -
+              (keys.raised ? keyboardHeightPx : 0),
           }}
           onLoad={(event) => {
             // A frame with no address still fires a load for its empty document.
@@ -237,6 +264,18 @@ export function DeviceFrame({
         />
         {bars && browser && !keys.raised && (
           <BrowserChrome side="bottom" {...barProps(bars, browser)} />
+        )}
+        {device.hinge && (
+          <div
+            aria-hidden
+            data-hinge
+            className={cn(
+              "pointer-events-none absolute z-10 from-transparent via-black/10 to-transparent",
+              rotated
+                ? "inset-x-0 top-1/2 h-3 -translate-y-1/2 bg-gradient-to-b"
+                : "inset-y-0 left-1/2 w-3 -translate-x-1/2 bg-gradient-to-r",
+            )}
+          />
         )}
         {indicator && (
           <div
@@ -264,6 +303,7 @@ export function DeviceFrame({
             }}
           />
         )}
+        {safeAreaGuides && insets && <SafeAreaGuides insets={insets} />}
         {guides && (guides.rulers || guides.grid > 0) && (
           <ScreenGuides width={width} height={height} rulers={guides.rulers} grid={guides.grid} />
         )}
@@ -321,7 +361,7 @@ export function DeviceFrame({
               top: layout.screenY,
               width: screenWidth,
               height: screenHeight,
-              borderRadius: Math.min(screenWidth, screenHeight) * SCREEN_ROUNDING[device.category],
+              borderRadius: screenRadius(device, screenWidth, screenHeight),
             }}
           >
             {screen}
@@ -360,7 +400,13 @@ export function DeviceFrame({
             bezelOn && isPhone && "bg-bezel-phone rounded-[36px]",
             bezelOn && isPhone && (rotated ? "px-7 py-3.5" : "px-3.5 py-7"),
             bezelOn && isTablet && "bg-bezel-tablet rounded-[20px] p-[22px]",
+            bezelOn && isWatch && "bg-bezel-phone",
           )}
+          style={
+            bezelOn && isWatch
+              ? { padding: WATCH_BEZEL, borderRadius: watchRadius + WATCH_BEZEL }
+              : undefined
+          }
         >
           {bezelOn && isPhone && (
             <>
@@ -395,9 +441,17 @@ export function DeviceFrame({
             data-screen
             className={cn(
               "relative overflow-hidden bg-white",
-              bezelOn ? "rounded-[6px]" : "border-border/70 rounded-lg border shadow-sm",
+              isWatch
+                ? "bg-black"
+                : bezelOn
+                  ? "rounded-[6px]"
+                  : "border-border/70 rounded-lg border shadow-sm",
             )}
-            style={{ width: screenWidth, height: screenHeight }}
+            style={{
+              width: screenWidth,
+              height: screenHeight,
+              ...(isWatch && { borderRadius: watchRadius }),
+            }}
           >
             {screen}
           </div>
@@ -430,6 +484,7 @@ export function DeviceFrame({
               {breakpointFor(width)}
             </span>
           )}
+          {targets.report && <TapTargetBadge report={targets.report} onShow={targets.show} />}
         </figcaption>
       )}
     </figure>

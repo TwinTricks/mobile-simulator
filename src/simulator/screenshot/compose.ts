@@ -3,10 +3,11 @@ import type { FrameImage } from "@/shared/frames";
 import type { FrameTint, ScreenshotSettings } from "@/shared/types";
 import {
   PHONE_BEZEL,
-  SCREEN_ROUNDING,
   TABLET_BEZEL,
+  WATCH_BEZEL,
   frameLayout,
   placedFrame,
+  screenRadius,
   type FrameLayout,
 } from "../frame-box";
 import { tintMask } from "../frame-tint";
@@ -84,7 +85,7 @@ async function artFor(
   const { device, rotated, bitmap } = shot;
   const sw = bitmap.width;
   const sh = bitmap.height;
-  const rounding = Math.min(sw, sh) * SCREEN_ROUNDING[device.category];
+  const rounding = screenRadius(device, sw, sh);
 
   const placed = frame ? placedFrame(device, rotated, true, frameColor) : null;
   if (placed) {
@@ -146,6 +147,17 @@ async function artFor(
       screenY: pad,
       screenRadius: 6 * k,
       frame: { kind: "bezel", radius: 20 * k, color: "#2d2d34", marks: [] },
+    };
+  }
+  if (frame && device.category === "watch") {
+    const pad = WATCH_BEZEL * k;
+    return {
+      width: sw + 2 * pad,
+      height: sh + 2 * pad,
+      screenX: pad,
+      screenY: pad,
+      screenRadius: rounding,
+      frame: { kind: "bezel", radius: rounding + pad, color: BEZEL_COLOR, marks: [] },
     };
   }
   return { width: sw, height: sh, screenX: 0, screenY: 0, screenRadius: rounding, frame: null };

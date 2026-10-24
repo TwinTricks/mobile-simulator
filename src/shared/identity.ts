@@ -36,7 +36,8 @@ export function frameIdentity(
   }: { spoofUA: boolean; touchMode: boolean; nativeScrollbars: boolean },
 ): FrameIdentity {
   const ua = spoofUA ? device.ua : null;
-  const handheld = device.category === "phone" || device.category === "tablet";
+  const handheld =
+    device.category === "phone" || device.category === "tablet" || device.category === "watch";
   return {
     ua,
     platform: identityPlatform(ua),
@@ -58,6 +59,27 @@ export type TouchMessage = { __msimTouch: boolean };
 
 /** Sent to a frame to show or hide its scrollbars without reloading it. */
 export type ScrollbarsMessage = { __msimScrollbars: boolean };
+
+/**
+ * Sent up by a frame checking its tap targets, with the ones under `min` CSS pixels. Must match
+ * the payload `tapTargets()` in the identity script posts.
+ */
+export type TapTargetReport = {
+  min: number;
+  /** Small targets, not counting links in running text. */
+  count: number;
+  /** Of those, the ones less than 8px from another target. */
+  crowded: number;
+  /** Small links inside running text, which WCAG 2.5.8 lets off. */
+  inline: number;
+  items: { label: string; width: number; height: number; inline: boolean; crowded: boolean }[];
+};
+
+/** The smallest comfortable tap target: Apple asks for 44 points, Google for 48dp. */
+export function tapTargetMinimum(device: Device, chosen: number): number {
+  if (chosen > 0) return chosen;
+  return /Android/.test(device.ua ?? "") ? 48 : 44;
+}
 
 /** Sent up by a frame whose page has a web app manifest that opens as an app. */
 export type PwaMessage = { __msimPwa: boolean };

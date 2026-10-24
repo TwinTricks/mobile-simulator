@@ -339,7 +339,21 @@ function touchMode(initial: boolean) {
 }
 
 // Must match the keys in src/simulator/shortcuts.ts.
-const SHORTCUT_KEYS = new Set(["r", "c", "d", "s", "v", "f", "+", "=", "-", "_", "0", "escape"]);
+const SHORTCUT_KEYS = new Set([
+  "r",
+  "c",
+  "d",
+  "s",
+  "v",
+  "f",
+  "+",
+  "=",
+  "-",
+  "_",
+  "0",
+  "q",
+  "escape",
+]);
 
 /**
  * Hands the simulator's shortcut keys up while the page has focus. Only presses the page left
@@ -445,6 +459,358 @@ function activityReporter() {
       if (on) window.addEventListener(type, report, { capture: true, passive: true });
       else window.removeEventListener(type, report, { capture: true });
     }
+  });
+}
+
+/**
+ * While the simulator asks (`{__msimTargets: minimum}`, 0 to stop), outlines the buttons and
+ * links smaller than the minimum in CSS pixels, and reports them up. Links inside running text
+ * are reported apart, as WCAG 2.5.8 exempts them, and small targets less than 8px from another
+ * are marked as crowded. `{__msimTargetShow: index}` scrolls to one of them and flashes it.
+ */
+function tapTargets() {
+  const SELECTOR = [
+    "a[href]",
+    "button",
+    "input:not([type='hidden'])",
+    "select",
+    "textarea",
+    "summary",
+    "label[for]",
+    "[onclick]",
+    "[tabindex]:not([tabindex='-1'])",
+    ...["button", "link", "checkbox", "radio", "switch", "tab", "menuitem", "option"].map(
+      (role) => `[role='${role}']`,
+    ),
+  ].join(",");
+  const GAP = 8;
+  const MAX_REPORTED = 50;
+  type Found = { el: Element; rect: DOMRect; inline: boolean; crowded: boolean };
+
+  let min = 0;
+  let found: Found[] = [];
+  let host: HTMLElement | null = null;
+  let layer: ShadowRoot | null = null;
+  let observer: MutationObserver | null = null;
+  let frame = 0;
+  let timer = 0;
+  let lastReport = "";
+
+  const inRunningText = (el: Element) => {
+    if (el.tagName !== "A" || getComputedStyle(el).display !== "inline") return false;
+    const own = (el.textContent ?? "").trim().length;
+    const around = (el.parentElement?.textContent ?? "").trim().length;
+    return around > own + 10;
+  };
+  const visible = (el: Element, rect: DOMRect) =>
+    rect.width > 0 &&
+    rect.height > 0 &&
+    el.checkVisibility({ checkOpacity: true, checkVisibilityCSS: true });
+  const labelOf = (el: Element) => {
+    const name =
+      el.getAttribute("aria-label") ||
+      (el as HTMLInputElement).placeholder ||
+      (el.textContent ?? "").trim().replace(/\s+/g, " ");
+    const tag = el.tagName.toLowerCase();
+    return name ? `${tag} "${name.slice(0, 40)}"` : tag;
+  };
+  const near = (a: DOMRect, b: DOMRect) =>
+    Math.max(a.left - b.right, b.left - a.right, 0) ** 2 +
+      Math.max(a.top - b.bottom, b.top - a.bottom, 0) ** 2 <
+    GAP ** 2;
+
+  const measure = () => {
+    const all = [...document.querySelectorAll(SELECTOR)].filter((el) => el !== host);
+    const rects = new Map(all.map((el) => [el, el.getBoundingClientRect()]));
+    const small: Found[] = [];
+    for (const el of all) {
+      const rect = rects.get(el)!;
+      if (rect.width >= min && rect.height >= min) continue;
+      if (!visible(el, rect)) continue;
+      // A small icon inside a big enough link or button is tapped through the bigger one.
+      const outer = el.parentElement?.closest(SELECTOR);
+      const outerRect = outer && rects.get(outer);
+      if (outerRect && outerRect.width >= min && outerRect.height >= min) continue;
+      small.push({ el, rect, inline: inRunningText(el), crowded: false });
+    }
+    for (const target of small) {
+      if (target.inline) continue;
+      target.crowded = all.some((other) => {
+        if (other === target.el || other.contains(target.el) || target.el.contains(other)) {
+          return false;
+        }
+        const rect = rects.get(other)!;
+        return rect.width > 0 && near(target.rect, rect);
+      });
+    }
+    found = small;
+  };
+
+  const draw = () => {
+    if (!layer) return;
+    const boxes = found.map(({ rect, inline, crowded }) => {
+      const box = document.createElement("div");
+      box.className = inline ? "inline" : crowded ? "small crowded" : "small";
+      box.style.cssText = `left:${rect.left}px;top:${rect.top}px;width:${rect.width}px;height:${rect.height}px`;
+      return box;
+    });
+    layer.replaceChildren(layer.querySelector("style")!, ...boxes);
+  };
+
+  const report = () => {
+    const targets = found.filter((f) => !f.inline);
+    const payload = {
+      min,
+      count: targets.length,
+      crowded: targets.filter((f) => f.crowded).length,
+      inline: found.length - targets.length,
+      items: found.slice(0, MAX_REPORTED).map(({ el, rect, inline, crowded }) => ({
+        label: labelOf(el),
+        width: Math.round(rect.width),
+        height: Math.round(rect.height),
+        inline,
+        crowded,
+      })),
+    };
+    const text = JSON.stringify(payload);
+    if (text === lastReport) return;
+    lastReport = text;
+    window.parent.postMessage({ __msimTargets: payload }, "*");
+  };
+
+  const run = () => {
+    frame = 0;
+    if (!min) return;
+    measure();
+    draw();
+    report();
+  };
+  const soon = () => {
+    if (min && !frame) frame = requestAnimationFrame(run);
+  };
+  const later = () => {
+    clearTimeout(timer);
+    timer = window.setTimeout(soon, 250);
+  };
+
+  const start = () => {
+    if (!host) {
+      host = document.createElement("msim-tap-targets");
+      host.style.cssText =
+        "position:fixed!important;inset:0!important;pointer-events:none!important;" +
+        "z-index:2147483646!important;display:block!important;contain:strict!important";
+      layer = host.attachShadow({ mode: "closed" });
+      const style = document.createElement("style");
+      style.textContent =
+        "div{position:fixed;box-sizing:border-box;border-radius:3px}" +
+        ".small{outline:2px solid #ef4444;background:rgb(239 68 68/.14)}" +
+        ".crowded{background:repeating-linear-gradient(45deg,rgb(239 68 68/.35) 0 3px,transparent 3px 6px)}" +
+        ".inline{outline:1.5px dashed #f59e0b}" +
+        "@keyframes flash{50%{outline-width:6px;outline-color:#2563eb}}" +
+        ".flash{animation:flash .4s ease 3}";
+      layer.append(style);
+    }
+    if (!host.isConnected) document.documentElement.append(host);
+    if (!observer) {
+      observer = new MutationObserver((records) => {
+        if (records.every((r) => r.target === host)) return;
+        later();
+      });
+      observer.observe(document.documentElement, {
+        subtree: true,
+        childList: true,
+        attributes: true,
+        characterData: true,
+      });
+      window.addEventListener("scroll", soon, { capture: true, passive: true });
+      window.addEventListener("resize", soon);
+    }
+    lastReport = "";
+    soon();
+  };
+
+  const stop = () => {
+    observer?.disconnect();
+    observer = null;
+    window.removeEventListener("scroll", soon, { capture: true });
+    window.removeEventListener("resize", soon);
+    clearTimeout(timer);
+    cancelAnimationFrame(frame);
+    frame = 0;
+    host?.remove();
+    found = [];
+    lastReport = "";
+  };
+
+  window.addEventListener("message", (event) => {
+    if (event.source !== window.parent) return;
+    const data = event.data as { __msimTargets?: unknown; __msimTargetShow?: unknown } | null;
+    if (typeof data?.__msimTargets === "number") {
+      min = Math.max(0, data.__msimTargets);
+      if (min) {
+        if (document.documentElement) start();
+      } else stop();
+    } else if (typeof data?.__msimTargetShow === "number") {
+      const target = found[data.__msimTargetShow];
+      if (!target) return;
+      target.el.scrollIntoView({ block: "center", inline: "nearest" });
+      requestAnimationFrame(() => {
+        run();
+        const index = found.findIndex((f) => f.el === target.el);
+        const box = layer?.querySelectorAll("div")[index];
+        box?.classList.add("flash");
+      });
+    }
+  });
+}
+
+/**
+ * Tells the simulator whether the page asks to draw edge to edge (`viewport-fit=cover`), and
+ * while it hands down insets (`{__msimSafeArea: {top, right, bottom, left}}`, or null), makes
+ * `env(safe-area-inset-*)` give them. A desktop browser always resolves those to 0, so each
+ * `env()` the page's styles use is pointed at a variable instead: in the sheets it can read,
+ * `style` attributes, and rules the page's scripts add later. Sheets from another origin are
+ * fetched again with CORS, and are left alone when that is refused.
+ */
+function safeAreas() {
+  const SIDES = ["top", "right", "bottom", "left"] as const;
+  const ENV = /env\(\s*safe-area-inset-(top|right|bottom|left)\s*(?:,(?:[^()]|\([^()]*\))*)?\)/g;
+  const MARK = "safe-area-inset-";
+  const rewrite = (css: string) => css.replace(ENV, "var(--msim-safe-$1)");
+  const vars = new CSSStyleSheet();
+  const fetched = new Set<string>();
+  // How many rules each sheet had when last gone through, so a pass only reads changed ones.
+  const seen = new WeakMap<CSSStyleSheet, number>();
+  let insets: Record<(typeof SIDES)[number], number> | null = null;
+  let rewriting = false;
+  let lastCover: boolean | null = null;
+  let timer = 0;
+
+  const cover = () =>
+    /viewport-fit\s*=\s*cover/i.test(
+      document.querySelector('meta[name="viewport"]')?.getAttribute("content") ?? "",
+    );
+  const reportCover = (force = false) => {
+    const now = cover();
+    if (!force && now === lastCover) return;
+    lastCover = now;
+    window.parent.postMessage({ __msimCover: now }, "*");
+  };
+
+  const fixRules = (rules: CSSRuleList) => {
+    for (const rule of rules) {
+      if (rule instanceof CSSImportRule) {
+        if (rule.styleSheet) fixSheet(rule.styleSheet);
+        continue;
+      }
+      const style = (rule as CSSStyleRule).style as CSSStyleDeclaration | undefined;
+      if (style?.cssText.includes(MARK)) style.cssText = rewrite(style.cssText);
+      const inner = (rule as CSSGroupingRule).cssRules as CSSRuleList | undefined;
+      if (inner) fixRules(inner);
+    }
+  };
+  const fixSheet = (sheet: CSSStyleSheet) => {
+    let rules: CSSRuleList;
+    try {
+      rules = sheet.cssRules;
+    } catch {
+      copyCrossOrigin(sheet);
+      return;
+    }
+    if (seen.get(sheet) === rules.length) return;
+    seen.set(sheet, rules.length);
+    fixRules(rules);
+  };
+  // Only the rules that use the insets are copied, into a `<style>` just after the original,
+  // so they still come after the rest of that sheet.
+  const copyCrossOrigin = (sheet: CSSStyleSheet) => {
+    const href = sheet.href;
+    const owner = sheet.ownerNode as Element | null;
+    if (!href || !owner || fetched.has(href)) return;
+    fetched.add(href);
+    void fetch(href, { mode: "cors", credentials: "omit" })
+      .then((response) => (response.ok ? response.text() : ""))
+      .then((text) => {
+        if (!text.includes(MARK)) return;
+        const copy = new CSSStyleSheet({ baseURL: href });
+        copy.replaceSync(rewrite(text));
+        const used = [...copy.cssRules].map((r) => r.cssText).filter((t) => t.includes("--msim-"));
+        const style = document.createElement("style");
+        style.dataset.msimSafeArea = href;
+        style.textContent = used.join("\n");
+        owner.after(style);
+      })
+      .catch(() => {});
+  };
+
+  const fixAll = () => {
+    if (!insets) return;
+    rewriting = true;
+    for (const sheet of document.styleSheets) fixSheet(sheet);
+    for (const sheet of document.adoptedStyleSheets) if (sheet !== vars) fixSheet(sheet);
+    for (const el of document.querySelectorAll<HTMLElement>(`[style*="${MARK}"]`)) {
+      el.style.cssText = rewrite(el.style.cssText);
+    }
+    if (!document.adoptedStyleSheets.includes(vars)) {
+      document.adoptedStyleSheets = [...document.adoptedStyleSheets, vars];
+    }
+    // The observer sees this pass's own changes after it ends, so they are let through then.
+    queueMicrotask(() => (rewriting = false));
+  };
+  const later = () => {
+    clearTimeout(timer);
+    timer = window.setTimeout(fixAll, 50);
+  };
+
+  // Rules a page's scripts add through the CSSOM never show up as DOM changes.
+  const proto = CSSStyleSheet.prototype;
+  const insertRule = proto.insertRule;
+  proto.insertRule = function (this: CSSStyleSheet, rule: string, index?: number) {
+    return insertRule.call(this, insets ? rewrite(rule) : rule, index);
+  };
+  const replaceSync = proto.replaceSync;
+  proto.replaceSync = function (this: CSSStyleSheet, text: string) {
+    replaceSync.call(this, insets && this !== vars ? rewrite(text) : text);
+  };
+  const replace = proto.replace;
+  proto.replace = function (this: CSSStyleSheet, text: string) {
+    return replace.call(this, insets ? rewrite(text) : text);
+  };
+
+  new MutationObserver((records) => {
+    if (records.some((r) => r.target.nodeName === "META" || r.addedNodes.length)) reportCover();
+    if (insets && !rewriting) later();
+  }).observe(document, {
+    subtree: true,
+    childList: true,
+    characterData: true,
+    attributes: true,
+    attributeFilter: ["style", "content", "href", "media"],
+  });
+  // A linked sheet has no rules to read until it has loaded.
+  document.addEventListener(
+    "load",
+    (event) => {
+      if (insets && (event.target as Element | null)?.nodeName === "LINK") later();
+    },
+    true,
+  );
+  document.addEventListener("DOMContentLoaded", () => reportCover());
+
+  window.addEventListener("message", (event) => {
+    if (event.source !== window.parent) return;
+    const data = event.data as { __msimSafeArea?: unknown } | null;
+    if (!data || !("__msimSafeArea" in data)) return;
+    const given = data.__msimSafeArea as Record<string, unknown> | null;
+    insets =
+      given && SIDES.every((side) => typeof given[side] === "number")
+        ? (given as Record<(typeof SIDES)[number], number>)
+        : null;
+    const value = (side: string) =>
+      insets ? `${insets[side as keyof typeof insets]}px` : `env(safe-area-inset-${side})`;
+    vars.replaceSync(`:root{${SIDES.map((s) => `--msim-safe-${s}:${value(s)};`).join("")}}`);
+    fixAll();
+    reportCover(true);
   });
 }
 
@@ -1274,6 +1640,8 @@ if (identity) {
   pwaReporter();
   recordingCursor();
   activityReporter();
+  tapTargets();
+  safeAreas();
   forwardShortcuts();
   scrollBridge();
   topColorReporter();

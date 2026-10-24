@@ -55,9 +55,18 @@ type Props = {
   battery?: number;
   /** "HH:MM" pins the clock; empty or missing follows the real time. */
   forcedTime?: string;
+  /** Laid over a page drawn edge to edge, which shows through it. */
+  overlay?: boolean;
 };
 
-export function DeviceStatusBar({ spec, color, dark, battery = 100, forcedTime }: Props) {
+export function DeviceStatusBar({
+  spec,
+  color,
+  dark,
+  battery = 100,
+  forcedTime,
+  overlay = false,
+}: Props) {
   const realTime = useClock();
   const time = pinnedTime(forcedTime) ?? realTime;
   const background = color ?? (dark ? "#000000" : "#ffffff");
@@ -77,11 +86,12 @@ export function DeviceStatusBar({ spec, color, dark, battery = 100, forcedTime }
       aria-hidden
       className={cn(
         "shrink-0 font-semibold tabular-nums transition-colors duration-200 select-none",
+        overlay && "pointer-events-none absolute inset-x-0 top-0 z-10",
         light ? "text-white" : "text-black",
       )}
       style={{
         height,
-        background,
+        background: overlay ? "transparent" : background,
         fontFamily: '-apple-system, "SF Pro Text", "SF Pro", system-ui, sans-serif',
       }}
     >

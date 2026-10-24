@@ -33,7 +33,7 @@ See how websites look on iPhone, Pixel, iPad, Galaxy, and desktop **side-by-side
 - **Quick simulate** - popup button to simulate the current tab's URL
 - **Persistent state** - remembers URL, devices, rotations, presets, and settings
 - **Dark / light / system theme**
-- **Keyboard shortcuts** - `Ctrl+Shift+M` open popup, `Ctrl+L` focus URL, `Ctrl+R` reload all; in the simulator `R` rotate, `C` compare, `D` devices, `S` screenshot, `V` record, `F` frame colour, `+` `−` `0` zoom, `Esc` close
+- **Keyboard shortcuts** - `Ctrl+Shift+M` open popup, `Ctrl+L` focus URL, `Ctrl+R` reload all; in the simulator `R` rotate, `C` compare, `D` devices, `S` screenshot, `V` record, `F` frame colour, `Q` QR code, `+` `−` `0` zoom, `Esc` close
 - **Real device frames** from [mockup-device-frames](https://github.com/jamesjingyi/mockup-device-frames) in every colour (`bun run frames:sync` pulls new ones), plus a **custom gradient** laid over any of them (the rainbow dot after a device's colours), in screenshots too
 - **Status bar and home indicator** - both drawn as on the device, and each can be turned off in Settings
 - **Screenshots** - framed, on a gradient or solid background, with padding, shadow, aspect ratio and caption; save as PNG/JPEG/WebP or copy
@@ -43,6 +43,10 @@ See how websites look on iPhone, Pixel, iPad, Galaxy, and desktop **side-by-side
 - **Side panel** - the phone next to your page, following whichever tab is active
 - **Full screen over the page** - `Alt+Shift+F`, the right-click menu, or the side panel's button; `Esc` leaves
 - **Right-click menus** - open a page or link in the simulator, or go full screen
+- **Watches and more phones** - Apple Watch Ultra 2 and Series 10, a round Galaxy Watch 7, the open Galaxy Z Fold 5 (with its hinge), OnePlus 12 and Nothing Phone (2)
+- **Open on your phone** - the QR button (or `Q`) shows a code for the page; for `localhost`, type the computer's network address and the code uses it
+- **Small tap targets** - in Tools, outlines buttons and links under 44×44 (iOS) or 48×48 (Android), counts them under each device and lists them; links in running text are allowed, and crowded targets are marked
+- **Safe areas** - a page with `viewport-fit=cover` draws under the status bar, and `env(safe-area-inset-*)` gives the device's real insets (Settings → Edge to edge); Tools → Show safe areas shades them
 - **Phone inside the page** - add `#mobile-sim` to a page's address (or use the popup's **In the page** button or the right-click menu) and a phone showing that page docks beside it, logged in as you are; see below
 
 ## Phone inside the page
@@ -168,6 +172,7 @@ Required justification for Web Store review:
 9. **CSP append mode** - `declarativeNetRequest` cannot _append_ to existing header values (only `set` / `remove` / `append-for-some-headers`). The "Strip XFO only" mode preserves the site's CSP intact; "Strip CSP + XFO" removes both. Truly modifying a CSP value would require the `webRequest` API on Firefox or a `chrome.debugger`-based approach.
 10. **Inline phone** - docked, the page makes room with a right margin on `<html>`, which elements with `position: fixed` ignore, so a fixed header can run under the phone. The phone's toolbar has no screenshot or record button; use the simulator tab for those.
 11. **Recording** - opened over a page (the default), the simulator records without Chrome's share prompt. In a tab of its own, Chrome asks to share the tab each time, unless `Alt+Shift+R` started it. The video keeps the shape it starts with, so a device turned mid-recording shrinks to fit inside it. Full screen over a site whose `Permissions-Policy` blocks `display-capture` can't record; use the simulator tab.
+12. **Safe areas** - `env(safe-area-inset-*)` is rewritten in the page's styles, so it reaches sheets the page can read, `style` attributes and rules its scripts add. A sheet from another origin is read again with CORS; one served without CORS keeps reading 0. Closed shadow roots aren't reached.
 
 ## Edge cases handled
 

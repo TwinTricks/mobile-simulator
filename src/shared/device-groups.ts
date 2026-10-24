@@ -17,6 +17,7 @@ const GROUPS: { label: string; match: (d: Device) => boolean; byModel?: boolean 
   { label: "Other phones", match: (d) => d.category === "phone" },
   { label: "iPad", match: (d) => d.category === "tablet" && /^iPad/.test(d.name) },
   { label: "Other tablets", match: (d) => d.category === "tablet" },
+  { label: "Watches", match: (d) => d.category === "watch" },
   { label: "Computers", match: (d) => d.category === "desktop" },
   { label: "Custom", match: () => true },
 ];

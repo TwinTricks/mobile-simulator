@@ -54,6 +54,15 @@ describe("deviceGroups", () => {
     ]);
   });
 
+  it("lists watches after tablets and before computers", () => {
+    const groups = deviceGroups([
+      d("Laptop", "desktop"),
+      d("Apple Watch Ultra 2", "watch"),
+      d("iPad Air", "tablet"),
+    ]);
+    expect(groups.map((g) => g.label)).toEqual(["iPad", "Watches", "Computers"]);
+  });
+
   it("keeps iPads in list order, as their numbers are sizes", () => {
     const [ipads] = deviceGroups([d('iPad Pro 11"', "tablet"), d('iPad Pro 13"', "tablet")]);
     expect(ipads!.devices.map((x) => x.name)).toEqual(['iPad Pro 11"', 'iPad Pro 13"']);
